@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+
+body {
+    background: #f7f7f7;
+    font-family: 'Rubik', sans-serif;
+    margin: 0;
+    --primary-color: #1f3f5f;
+}
+
+header {
+    background-color: #efefef;
+    box-shadow: 0 2px 4px #0000003f;
+    display: flex;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    position: fixed;
+}
+
+button {
+    background: var(--primary-color);
+    border: 0;
+    box-shadow:
+        1px 1px 2px #0000007f,
+        1px 1px 2px #ffffff3f inset,
+        -1px -1px 2px #0000007f inset;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0;
+}
+
+button:active {
+    box-shadow:
+        1px 1px 2px #0000007f inset;
+}
+
+
+.header__settings {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    flex-grow: 1;
+}
+
+.settings__block {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 96px;
+}
+
+.block__line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+label {
+    margin-right: 12px;
+}
+
+.settings__input--number {
+    display: flex;
+    border-radius: 6px;
+}
+
+.input__number {
+    border-color: var(--primary-color);
+    border-width: 1px;
+    border-left: none;
+    border-right: none;
+    box-shadow:
+        -4px -4px 4px -2px #ffffff7f inset,
+        4px 4px 4px -2px #0000001f inset;
+}
+
+input[type="number"] {
+    font-family: 'Rubik', sans-serif;
+    width: 42px;
+    height: 21px;
+    -moz-appearance: textfield;
+    padding: 0;
+    text-align: center;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.input__button {
+    width: 20px;
+}
+
+.plus {
+    border-radius: 0 6px 6px 0;
+}
+
+.minus {
+    border-radius: 6px 0 0 6px;
+}
+
+svg {
+    vertical-align: middle;
+}
+
+.settings__input--slider {
+    justify-content: space-between;
+    width: 175px;
+}
+
+.slider-number {
+    border-radius: 6px;
+    border: none;
+    box-shadow:
+        -4px -4px 4px -2px #ffffff7f inset,
+        4px 4px 4px -2px #0000001f inset,
+        -1px -1px 2px #ffffff7f,
+        1px 1px 2px #0000001f;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    border-radius: 4px;
+    box-shadow:
+        -4px -4px 4px -2px #ffffff7f inset,
+        4px 4px 4px -2px #0000001f inset,
+        -1px -1px 2px #ffffff7f,
+        1px 1px 2px #0000001f;
+    cursor: pointer;
+    height: 8px;
+    width: 120px;
+    margin: 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: var(--primary-color);
+    border: 0;
+    border-radius: 50%;
+    box-shadow:
+        1px 1px 2px #0000007f,
+        4px 4px 6px #ffffff1f inset,
+        -4px -4px 6px #0000003f inset;
+    height: 16px;
+    width: 16px;
+}
+
+input[type="range"]::-moz-range-thumb {
+    background: var(--primary-color);
+    border: 0;
+    border-radius: 50%;
+    box-shadow:
+        1px 1px 2px #0000007f,
+        4px 4px 6px #ffffff1f inset,
+        -4px -4px 6px #0000003f inset;
+    height: 16px;
+    width: 16px;
+}
+
+
+.header__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.actions__button {
+    border-radius: 6px;
+    font-family: 'Rubik', sans-serif;
+    height: 36px;
+    width: 80px;
+    text-transform: uppercase;
+}
+
+
+.animation {
+    text-align: center;
+}
+
+#animationCanvas {
+    border-radius: 3px;
+    box-shadow:
+        0 0 8px #0000001f inset;
+    margin-top: 120px;
+}
