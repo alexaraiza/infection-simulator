@@ -2,9 +2,9 @@ import * as people from "./people/people.js";
 import { draw, erase } from "./animations/canvas.js";
 
 
-export const HEALTHY_COLOR = "#00bf5f";
-export const INFECTED_COLOR = "#bf0000";
-export const IMMUNE_COLOR = "#ffbf00";
+export const HEALTHY_COLOR = "#7fdf1f";
+export const INFECTED_COLOR = "#df1f1f";
+export const IMMUNE_COLOR = "#1f7fdf";
 
 const DEFAULT_HEALTHY_PEOPLE = 99;
 const DEFAULT_INFECTED_PEOPLE = 1;
@@ -54,6 +54,8 @@ function resetInputs() {
   immuneTime.value = DEFAULT_IMMUNE_TIME;
   infectedTime.previousValue = DEFAULT_INFECTED_TIME;
   immuneTime.previousValue = DEFAULT_IMMUNE_TIME;
+
+  chartSelect.value = "people";
 }
 
 

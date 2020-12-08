@@ -1,30 +1,47 @@
+import { MAX_PEOPLE, personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
 import Person from "./Person.js";
 import { frameCount } from "../main.js";
-import { MAX_PEOPLE, personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
 
 
 export const people = [];
 
 export const count = {
+  "total": 0,
   "healthy": 0,
   "infected": 0,
   "immune": 0,
-  "total": 0
+  "dailyCollisions": 0,
+  "dailyInfections": 0,
+  reset: function() {
+    for (let key in count) {
+      if (key.startsWith("daily")) {
+        this[key] = 0;
+      }
+    }
+  }
 }
 
 export const countHistory = {
+  "days": [0],
+  "total": [],
   "healthy": [],
   "infected": [],
   "immune": [],
-  "total": [],
+  "dailyCollisions": [],
+  "dailyInfections": [],
   addCurrentCount: function() {
-    for (let state in count) {
-      this[state].push(count[state]);
+    this.days.push(this.days.length);
+
+    for (let key in count) {
+      if (typeof count[key] === "number") {
+        this[key].push(count[key]);
+      }
     }
   },
-  setCurrentCount: function() {
-    for (let state in count) {
-      this[state][this[state].length - 1] = count[state];
+  setInitialCount: function() {
+    const KEYS = ["total", "healthy", "infected", "immune"];
+    for (let key of KEYS) {
+      this[key][0] = count[key];
     }
   }
 }
@@ -158,6 +175,8 @@ export function checkPeopleCollisions(i) {
 
       if (iNormalVelocity <= jNormalVelocity) continue;
 
+      count.dailyCollisions++;
+
       [people[i].velocity.x, people[i].velocity.y, people[j].velocity.x, people[j].velocity.y] = [
         cosine * jNormalVelocity + sine * iTangentialVelocity,
         sine * jNormalVelocity - cosine * iTangentialVelocity,
@@ -168,11 +187,13 @@ export function checkPeopleCollisions(i) {
         people[i].setState("infected");
         count.healthy--;
         count.infected++;
+        count.dailyInfections++;
       }
       else if (people[i].state === "infected" && people[j].state === "healthy") {
         people[j].setState("infected");
         count.healthy--;
         count.infected++;
+        count.dailyInfections++;
       }
     }
   }

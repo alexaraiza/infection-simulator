@@ -1,7 +1,7 @@
 import * as settings from "./settings.js";
-import { people, countHistory, move as movePeople, checkStateChange as checkPeopleStateChange } from "./people/people.js";
+import { people, count, countHistory, move as movePeople, checkStateChange as checkPeopleStateChange } from "./people/people.js";
 import { draw, clear as clearCanvas, resize as resizeCanvas } from "./animations/canvas.js";
-import { center as centerPlot, update as updatePlot } from "./animations/plot.js";
+import * as chart from "./animations/chart.js";
 
 
 var isPlaying = false;
@@ -11,12 +11,12 @@ var nextFrameID;
 
 document.addEventListener("DOMContentLoaded", function() {
   resizeCanvas();
-  centerPlot();
 
   settings.resetSettings();
 
-  countHistory.addCurrentCount();
-  updatePlot();
+  countHistory.setInitialCount();
+
+  chart.create("people");
 
   addEventListeners();
 });
@@ -35,7 +35,8 @@ function play() {
 
   if (frameCount % settings.MONITOR_REFRESH_RATE === 0) {
     countHistory.addCurrentCount();
-    updatePlot();
+    chart.update();
+    count.reset();
   }
 
   nextFrameID = window.requestAnimationFrame(play);
@@ -63,8 +64,8 @@ function addEventListeners() {
     element.addEventListener("change", function() {
       settings.setPeopleCounts({ target: element });
       if (frameCount === 0) {
-        countHistory.setCurrentCount();
-        updatePlot();
+        countHistory.setInitialCount();
+        updateChart();
       }
     });
   }
@@ -75,8 +76,8 @@ function addEventListeners() {
       input.value--;
       settings.setPeopleCounts({ target: input });
       if (frameCount === 0) {
-        countHistory.setCurrentCount();
-        updatePlot();
+        countHistory.setInitialCount();
+        updateChart();
       }
     });
   }
@@ -87,8 +88,8 @@ function addEventListeners() {
       input.value++;
       settings.setPeopleCounts({ target: input });
       if (frameCount === 0) {
-        countHistory.setCurrentCount();
-        updatePlot();
+        countHistory.setInitialCount();
+        updateChart();
       }
     });
   }
@@ -140,6 +141,10 @@ function addEventListeners() {
       settings.setTimes({ target: input });
     });
   }
+
+  chartSelect.addEventListener("change", function() {
+    chart.change(chartSelect.value);
+  });
 
   playPauseButton.addEventListener("click", togglePlayPause);
 }

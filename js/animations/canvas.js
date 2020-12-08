@@ -38,6 +38,6 @@ export function clear() {
 
 
 export function resize() {
-  animationCanvas.height = window.innerHeight - 320;
+  animationCanvas.height = window.innerHeight - 360;
   animationCanvas.width = 0.6 * window.innerWidth;
 }

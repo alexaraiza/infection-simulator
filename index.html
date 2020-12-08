@@ -115,11 +115,28 @@
     </header>
 
     <div class="animation">
-      <canvas id="animationCanvas" style="background: #ffffff;"></canvas>
+      <canvas id="animationCanvas"></canvas>
     </div>
 
-    <div id="plot"></div>
+    <div class="chart-container">
+
+      <div class="chart-select">
+
+        <select id="chartSelect">
+          <option value="people">People</option>
+          <option value="dailyInteractions">Daily interactions</option>
+        </select>
+        <svg id="chevronDown" viewBox="0 0 24 24" height="24px" width="24px"><path fill="currentColor" d="M 7.41 8.58 L 12 13.17 L 16.59 8.58 L 18 10 L 12 16 L 6 10 L 7.41 8.58 Z"/></svg>
+
+      </div>
+
+      <div class="chart-wrapper">
+        <canvas id="chart"></canvas>
+      </div>
+
+    </div>
   </body>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
   <script type="module" src="js/main.js" type="text/javascript"></script>
 </html>
