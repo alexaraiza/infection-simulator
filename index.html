@@ -10,43 +10,43 @@
 
   <body>
     <header>
-      <div class="header__settings">
+      <div class="settings">
 
-        <div class="settings__block">
+        <div class="settings__group">
 
-          <div class="block__line">
+          <div class="group__row">
             <label for="healthyCount">Healthy people</label>
             <div class="settings__input--number">
               <button class="input__button people-count-button minus" id="healthyCount--">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 5 V 11 H 19 V 13 Z"/></svg>
               </button>
-              <input type="number" value=99 class="input__number people-count-input" id="healthyCount">
+              <input type="number" value=99 class="input__field people-count-input" id="healthyCount">
               <button class="input__button people-count-button plus" id="healthyCount++">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 13 V 19 H 11 V 13 H 5 V 11 H 11 V 5 H 13 V 11 H 19 V 13 Z"/></svg>
               </button>
             </div>
           </div>
 
-          <div class="block__line">
+          <div class="group__row">
             <label for="infectedCount">Infected people</label>
             <div class="settings__input--number">
               <button class="input__button people-count-button minus" id="infectedCount--">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 5 V 11 H 19 V 13 Z"/></svg>
               </button>
-              <input type="number" value=1 class="input__number people-count-input" id="infectedCount">
+              <input type="number" value=1 class="input__field people-count-input" id="infectedCount">
               <button class="input__button people-count-button plus" id="infectedCount++">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 13 V 19 H 11 V 13 H 5 V 11 H 11 V 5 H 13 V 11 H 19 V 13 Z"/></svg>
               </button>
             </div>
           </div>
 
-          <div class="block__line">
+          <div class="group__row">
             <label for="immuneCount">Immune people</label>
             <div class="settings__input--number">
               <button class="input__button people-count-button minus" id="immuneCount--">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 5 V 11 H 19 V 13 Z"/></svg>
               </button>
-              <input type="number" value=0 class="input__number people-count-input" id="immuneCount">
+              <input type="number" value=0 class="input__field people-count-input" id="immuneCount">
               <button class="input__button people-count-button plus" id="immuneCount++">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 13 V 19 H 11 V 13 H 5 V 11 H 11 V 5 H 13 V 11 H 19 V 13 Z"/></svg>
               </button>
@@ -56,19 +56,19 @@
         </div>
 
 
-        <div class="settings__block">
+        <div class="settings__group">
 
-          <div class="block__column">
+          <div>
             <label for="speedInput">Speed</label>
-            <div class="block__line settings__input--slider">
+            <div class="group__row settings__input--slider">
               <input type="range" min=0 max=100 value=50 id="speedSlider">
               <input type="number" class="slider-number" value=50 id="speedInput">
             </div>
           </div>
 
-          <div class="block__column">
+          <div>
             <label for="radiusInput">Size</label>
-            <div class="block__line settings__input--slider">
+            <div class="group__row settings__input--slider">
               <input type="range" min=0 max=10 value=5 id="radiusSlider">
               <input type="number" class="slider-number" value=5 id="radiusInput">
             </div>
@@ -77,28 +77,28 @@
         </div>
 
 
-        <div class="settings__block">
+        <div class="settings__group">
 
-          <div class="block__line">
+          <div class="group__row">
             <label for="infectedTime">Infected days</label>
             <div class="settings__input--number">
               <button class="input__button person-time-button minus" id="infectedTime--">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 5 V 11 H 19 V 13 Z"/></svg>
               </button>
-              <input type="number" class="input__number person-time-input" min=0 value=10 id="infectedTime">
+              <input type="number" class="input__field person-time-input" min=0 value=10 id="infectedTime">
               <button class="input__button person-time-button plus" id="infectedTime++">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 13 V 19 H 11 V 13 H 5 V 11 H 11 V 5 H 13 V 11 H 19 V 13 Z"/></svg>
               </button>
             </div>
           </div>
 
-          <div class="block__line">
+          <div class="group__row">
             <label for="immuneTime">Immune days</label>
             <div class="settings__input--number">
               <button class="input__button person-time-button minus" id="immuneTime--">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 5 V 11 H 19 V 13 Z"/></svg>
               </button>
-              <input type="number" class="input__number person-time-input" min=0 value=180 id="immuneTime">
+              <input type="number" class="input__field person-time-input" min=0 value=180 id="immuneTime">
               <button class="input__button person-time-button plus" id="immuneTime++">
                 <svg viewBox="0 0 24 24" height="18px" width="18px"><path fill="currentColor" d="M 19 13 H 13 V 19 H 11 V 13 H 5 V 11 H 11 V 5 H 13 V 11 H 19 V 13 Z"/></svg>
               </button>
@@ -109,7 +109,7 @@
 
       </div>
 
-      <div class="header__actions">
+      <div class="actions">
         <button class="actions__button" id="playPauseButton">Play</button>
       </div>
     </header>
