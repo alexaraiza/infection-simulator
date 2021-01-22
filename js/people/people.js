@@ -1,9 +1,11 @@
-import { MAX_PEOPLE, personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
 import Person from "./Person.js";
 import { frameCount } from "../main.js";
+import { personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
+import { hoverPerson, unhoverPerson } from "../animations/canvas.js";
 
 
 export const people = [];
+export let personHovering = null;
 
 export const count = {
   "total": 0,
@@ -65,15 +67,13 @@ export function add(n, state) {
   for (var addedCount = 0; addedCount < n; addedCount++) {
     let tries = 0;
     do {
-      let angle = 2 * Math.PI * Math.random();
-      people.push(new Person(personRadius + Math.random() * (animationCanvas.width - 2 * personRadius), personRadius + Math.random() * (animationCanvas.height - 2 * personRadius), personInitialSpeed * Math.cos(angle), personInitialSpeed * Math.sin(angle), personRadius, state));
+      let velocityAngle = 2 * Math.PI * Math.random();
+      var createdPerson = new Person(personRadius + Math.random() * (animationCanvas.width - 2 * personRadius), personRadius + Math.random() * (animationCanvas.height - 2 * personRadius), personInitialSpeed * Math.cos(velocityAngle), personInitialSpeed * Math.sin(velocityAngle), personRadius, state);
       var personIsValid = true;
 
-      for (let person of people) {
-        if (people[people.length - 1] === person) continue;
-        if (getDistance(people[people.length - 1], person) <= people[people.length - 1].radius + person.radius) {
+      for (let existingPerson of people) {
+        if (areColliding(createdPerson, existingPerson)) {
           personIsValid = false;
-          people.pop();
           break;
         }
       }
@@ -83,7 +83,8 @@ export function add(n, state) {
     while (!personIsValid && tries < 1000);
 
     if (personIsValid) {
-      addedPeople.push(people[people.length - 1]);
+      people.push(createdPerson);
+      addedPeople.push(createdPerson);
     }
     else {
       break;
@@ -104,8 +105,7 @@ export function remove(n, state) {
 
   while (removedCount < n && i >= 0) {
     if (people[i].state === state) {
-      removedPeople.push(people[i]);
-      people.splice(i, 1);
+      removedPeople.push(people.splice(i, 1)[0]);
       removedCount++;
     }
     i--;
@@ -118,9 +118,7 @@ export function remove(n, state) {
 }
 
 
-export function removeExcessPeople(incomingState) {
-  let excessPeople = count.total - MAX_PEOPLE;
-
+export function removeExcessPeople(excessPeople, incomingState) {
   if (excessPeople <= 0) return [];
 
   const PRIORITIES = {
@@ -132,12 +130,14 @@ export function removeExcessPeople(incomingState) {
   let firstPriority = PRIORITIES[incomingState][0];
   let secondPriority = PRIORITIES[incomingState][1];
 
-  if (count[firstPriority] >= excessPeople) {
+  let firstPriorityCount = count[firstPriority];
+
+  if (firstPriorityCount >= excessPeople) {
     return remove(excessPeople, firstPriority);
   }
   else {
-    let removedPeople = remove(count[firstPriority], firstPriority);
-    return removedPeople.concat(remove(excessPeople - count[firstPriority], secondPriority));
+    let removedPeople = remove(firstPriorityCount, firstPriority);
+    return removedPeople.concat(remove(excessPeople - firstPriorityCount, secondPriority));
   }
 }
 
@@ -221,6 +221,36 @@ export function checkWallCollisions(person) {
 }
 
 
-function getDistance(person, otherPerson) {
-  return Math.hypot(person.position.x - otherPerson.position.x, person.position.y - otherPerson.position.y)
+export function checkMouseHover(event) {
+  let mouseX = event.clientX - animationCanvas.offsetLeft;
+  let mouseY = event.clientY - animationCanvas.offsetTop;
+  let closestPerson;
+  let closestDistance;
+
+  for (let person of people) {
+    let distance = Math.hypot(person.position.x - mouseX, person.position.y - mouseY);
+    if (!closestPerson) {
+      closestPerson = person;
+      closestDistance = distance;
+    }
+    else if (distance < closestDistance) {
+      closestPerson = person;
+      closestDistance = distance;
+    }
+  }
+
+  if ((closestDistance > 2 * closestPerson.radius || closestPerson !== personHovering) && personHovering) {
+    unhoverPerson(personHovering);
+    personHovering = null;
+  }
+
+  if (closestDistance <= 2 * closestPerson.radius && !personHovering) {
+    hoverPerson(closestPerson);
+    personHovering = closestPerson;
+  }
+}
+
+
+function areColliding(person, otherPerson) {
+  return Math.hypot(person.position.x - otherPerson.position.x, person.position.y - otherPerson.position.y) <= (person.radius + otherPerson.radius)
 }

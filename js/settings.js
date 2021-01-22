@@ -1,10 +1,15 @@
 import * as people from "./people/people.js";
-import { draw, erase } from "./animations/canvas.js";
+import { drawPeople, erasePeople } from "./animations/canvas.js";
 
 
-export const HEALTHY_COLOR = "#7fdf1f";
-export const INFECTED_COLOR = "#df1f1f";
-export const IMMUNE_COLOR = "#1f7fdf";
+export const COLORS = {
+  "healthy": "#7fdf1f",
+  "infected": "#df1f1f",
+  "immune": "#1f7fdf",
+  "healthyHover": "#5fa717",
+  "infectedHover": "#a71717",
+  "immuneHover": "#175fa7",
+}
 
 const DEFAULT_HEALTHY_PEOPLE = 99;
 const DEFAULT_INFECTED_PEOPLE = 1;
@@ -36,7 +41,7 @@ export function resetSettings() {
   people.add(DEFAULT_HEALTHY_PEOPLE, "healthy");
   people.add(DEFAULT_INFECTED_PEOPLE, "infected");
   people.add(DEFAULT_IMMUNE_PEOPLE, "immune");
-  draw(people.people);
+  drawPeople(people.people);
 
   resetInputs();
 }
@@ -75,16 +80,18 @@ export function setPeopleCounts(event) {
     input = MAX_PEOPLE;
   }
 
+  let state = target.id.slice(0, -5);
+
   if (input < target.previousValue) {
-    let removedPeople = people.remove(target.previousValue - input, target.id.slice(0, -5));
-    erase(removedPeople);
+    let removedPeople = people.remove(target.previousValue - input, state);
+    erasePeople(removedPeople);
   }
   else {
-    let state = target.id.slice(0, -5);
-    let addedPeople = people.add(input - target.previousValue, state);
-    let removedPeople = people.removeExcessPeople(state);
-    erase(removedPeople);
-    draw(addedPeople);
+    let peopleToAdd = input - target.previousValue;
+    let removedPeople = people.removeExcessPeople(peopleToAdd + people.count.total - MAX_PEOPLE, state);
+    let addedPeople = people.add(peopleToAdd, state);
+    erasePeople(removedPeople);
+    drawPeople(addedPeople);
   }
   setPeopleCountInputs();
 }

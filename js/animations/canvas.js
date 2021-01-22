@@ -1,36 +1,50 @@
-import { HEALTHY_COLOR, INFECTED_COLOR, IMMUNE_COLOR } from "../settings.js";
+import { COLORS } from "../settings.js";
+import { personHovering } from "../people/people.js";
 
 
 const context = animationCanvas.getContext("2d");
 
 
-export function draw(people) {
+export function drawPeople(people) {
   for (let person of people) {
     context.beginPath();
     context.arc(person.position.x, person.position.y, person.radius, 0, 2 * Math.PI);
-
-    switch (person.state) {
-      case "healthy":
-        context.fillStyle = HEALTHY_COLOR;
-        break;
-      case "infected":
-        context.fillStyle = INFECTED_COLOR;
-        break;
-      case "immune":
-        context.fillStyle = IMMUNE_COLOR;
+    if (person === personHovering) {
+      context.fillStyle = COLORS[person.state + "Hover"];
+    }
+    else {
+      context.fillStyle = COLORS[person.state];
     }
     context.fill();
   }
 }
 
-export function erase(people) {
+export function erasePeople(people) {
   for (let person of people) {
     context.beginPath();
-    context.arc(person.position.x, person.position.y, person.radius + 1, 0, 2 * Math.PI);
+    context.arc(person.position.x, person.position.y, person.radius + 0.4, 0, 2 * Math.PI);
     context.fillStyle = getComputedStyle(animationCanvas).backgroundColor;
     context.fill();
   }
 }
+
+
+export function hoverPerson(person) {
+  erasePeople([person]);
+  context.beginPath();
+  context.arc(person.position.x, person.position.y, person.radius, 0, 2 * Math.PI);
+  context.fillStyle = COLORS[person.state + "Hover"];
+  context.fill();
+}
+
+export function unhoverPerson(person) {
+  erasePeople([person]);
+  context.beginPath();
+  context.arc(person.position.x, person.position.y, person.radius, 0, 2 * Math.PI);
+  context.fillStyle = COLORS[person.state];
+  context.fill();
+}
+
 
 export function clear() {
   context.clearRect(0, 0, animationCanvas.width, animationCanvas.height);

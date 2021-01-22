@@ -1,6 +1,6 @@
 import * as settings from "./settings.js";
-import { people, count, countHistory, move as movePeople, checkStateChange as checkPeopleStateChange } from "./people/people.js";
-import { draw, clear as clearCanvas, resize as resizeCanvas } from "./animations/canvas.js";
+import { people, count, countHistory, move as movePeople, checkStateChange as checkPeopleStateChange, checkMouseHover } from "./people/people.js";
+import { drawPeople, clear as clearCanvas, resize as resizeCanvas } from "./animations/canvas.js";
 import * as chart from "./animations/chart.js";
 
 
@@ -29,7 +29,7 @@ function play() {
 
   movePeople();
   clearCanvas();
-  draw(people);
+  drawPeople(people);
 
   settings.setPeopleCountInputs();
 
@@ -65,7 +65,7 @@ function addEventListeners() {
       settings.setPeopleCounts({ target: element });
       if (frameCount === 0) {
         countHistory.setInitialCount();
-        updateChart();
+        chart.update();
       }
     });
   }
@@ -77,7 +77,7 @@ function addEventListeners() {
       settings.setPeopleCounts({ target: input });
       if (frameCount === 0) {
         countHistory.setInitialCount();
-        updateChart();
+        chart.update();
       }
     });
   }
@@ -89,7 +89,7 @@ function addEventListeners() {
       settings.setPeopleCounts({ target: input });
       if (frameCount === 0) {
         countHistory.setInitialCount();
-        updateChart();
+        chart.update();
       }
     });
   }
@@ -113,12 +113,12 @@ function addEventListeners() {
   radiusInput.addEventListener("change", function() {
     settings.setInitialRadiuses();
     clearCanvas();
-    draw(people);
+    drawPeople(people);
   });
   radiusSlider.addEventListener("change", function() {
     settings.setInitialRadiuses();
     clearCanvas();
-    draw(people);
+    drawPeople(people);
   });
 
 
@@ -141,6 +141,8 @@ function addEventListeners() {
       settings.setTimes({ target: input });
     });
   }
+
+  animationCanvas.addEventListener("mousemove", checkMouseHover);
 
   chartSelect.addEventListener("change", function() {
     chart.change(chartSelect.value);

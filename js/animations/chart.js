@@ -1,4 +1,4 @@
-import { HEALTHY_COLOR, INFECTED_COLOR, IMMUNE_COLOR } from "../settings.js";
+import { COLORS } from "../settings.js";
 import { countHistory } from "../people/people.js";
 
 
@@ -34,27 +34,27 @@ const OPACITY = "bf";
 
 let healthyDataset = {
   label: "Healthy people",
-  backgroundColor: HEALTHY_COLOR + OPACITY,
-  borderColor: HEALTHY_COLOR + OPACITY,
-  pointBackgroundColor: HEALTHY_COLOR,
+  backgroundColor: COLORS["healthy"] + OPACITY,
+  borderColor: COLORS["healthy"] + OPACITY,
+  pointBackgroundColor: COLORS["healthy"],
   fill: false,
   data: countHistory.healthy
 }
 
 let infectedDataset = {
   label: "Infected people",
-  backgroundColor: INFECTED_COLOR + OPACITY,
-  borderColor: INFECTED_COLOR + OPACITY,
-  pointBackgroundColor: INFECTED_COLOR,
+  backgroundColor: COLORS["infected"] + OPACITY,
+  borderColor: COLORS["infected"] + OPACITY,
+  pointBackgroundColor: COLORS["infected"],
   fill: false,
   data: countHistory.infected
 }
 
 let immuneDataset = {
   label: "Immune people",
-  backgroundColor: IMMUNE_COLOR + OPACITY,
-  borderColor: IMMUNE_COLOR + OPACITY,
-  pointBackgroundColor: IMMUNE_COLOR,
+  backgroundColor: COLORS["immune"] + OPACITY,
+  borderColor: COLORS["immune"] + OPACITY,
+  pointBackgroundColor: COLORS["immune"],
   fill: false,
   data: countHistory.immune
 }
@@ -104,7 +104,7 @@ let collisionsDataset = {
 
 let infectionsDataset = {
   label: "Infections",
-  backgroundColor: INFECTED_COLOR + OPACITY,
+  backgroundColor: COLORS["infected"] + OPACITY,
   data: countHistory.dailyInfections
 }
 
