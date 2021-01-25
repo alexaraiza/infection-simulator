@@ -9,6 +9,7 @@ export const COLORS = {
   "healthyHover": "#5fa717",
   "infectedHover": "#a71717",
   "immuneHover": "#175fa7",
+  "wall": "#000000",
 }
 
 const DEFAULT_HEALTHY_PEOPLE = 99;
@@ -21,13 +22,19 @@ const DEFAULT_RADIUS_INPUT = 5;
 const DEFAULT_INFECTED_TIME = 10;
 const DEFAULT_IMMUNE_TIME = 180;
 
-export var MAX_PEOPLE = 1000;
-export var MONITOR_REFRESH_RATE = 60;
+const DEFAULT_WALL_THICKNESS = 5;
 
-export var personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
-export var personRadius = DEFAULT_RADIUS_INPUT;
-export var infectedFrames = DEFAULT_INFECTED_TIME * MONITOR_REFRESH_RATE;
-export var immuneFrames = DEFAULT_IMMUNE_TIME * MONITOR_REFRESH_RATE;
+const MAX_PEOPLE = 1000;
+export let MONITOR_REFRESH_RATE = 60;
+
+export let personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
+export let personRadius = DEFAULT_RADIUS_INPUT;
+export let infectedFrames = DEFAULT_INFECTED_TIME * MONITOR_REFRESH_RATE;
+export let immuneFrames = DEFAULT_IMMUNE_TIME * MONITOR_REFRESH_RATE;
+
+export let wallThickness = DEFAULT_WALL_THICKNESS;
+
+export let speedIsZero = false;
 
 
 export function resetSettings() {
@@ -123,11 +130,17 @@ export function setInitialSpeeds() {
   }
 
   let ratio = input / (personInitialSpeed * MONITOR_REFRESH_RATE);
-  for (let person of people.people) {
-    person.velocity.x *= ratio;
-    person.velocity.y *= ratio;
+  if (ratio === 0) {
+    speedIsZero = true;
   }
-  personInitialSpeed = input / MONITOR_REFRESH_RATE;
+  else {
+    speedIsZero = false;
+    for (let person of people.people) {
+      person.velocity.x *= ratio;
+      person.velocity.y *= ratio;
+    }
+    personInitialSpeed = input / MONITOR_REFRESH_RATE;
+  }
   setInitialSpeedInputs(input);
 }
 

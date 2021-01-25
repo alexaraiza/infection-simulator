@@ -1,11 +1,13 @@
 import Person from "./Person.js";
 import { frameCount } from "../main.js";
 import { personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
-import { hoverPerson, unhoverPerson } from "../animations/canvas.js";
+import { walls } from "../walls/walls.js";
+import { drawPeople, erasePeople } from "../animations/canvas.js";
 
 
 export const people = [];
 export let personHovering = null;
+
 
 export const count = {
   "total": 0,
@@ -53,11 +55,15 @@ export function move() {
   for (let person of people) {
     person.move();
   }
+}
 
-  for (let i = 0; i < people.length; i++) {
-    checkPeopleCollisions(i);
-    checkWallCollisions(people[i]);
+
+export function collide() {
+  for (let person of people) {
+    collideWithWalls(person, walls);
   }
+
+  collideAllPeople();
 }
 
 
@@ -158,49 +164,91 @@ export function checkStateChange() {
 }
 
 
-export function checkPeopleCollisions(i) {
-  for (let j = i + 1; j < people.length; j++) {
-    let xDistance = people[j].position.x - people[i].position.x;
-    let yDistance = people[j].position.y - people[i].position.y;
-    let totalDistance = Math.hypot(xDistance, yDistance);
+export function checkMouseHover(mouseX, mouseY) {
+  let closestPerson;
+  let closestDistance;
 
-    if (totalDistance <= people[i].radius + people[j].radius) {
-      let sine = yDistance / totalDistance;
-      let cosine = xDistance / totalDistance;
+  for (let person of people) {
+    let distance = Math.hypot(person.position.x - mouseX, person.position.y - mouseY);
+    if (!closestPerson) {
+      closestPerson = person;
+      closestDistance = distance;
+    }
+    else if (distance < closestDistance) {
+      closestPerson = person;
+      closestDistance = distance;
+    }
+  }
 
-      let iNormalVelocity = cosine * people[i].velocity.x + sine * people[i].velocity.y;
-      let iTangentialVelocity = sine * people[i].velocity.x - cosine * people[i].velocity.y;
-      let jNormalVelocity = cosine * people[j].velocity.x + sine * people[j].velocity.y;
-      let jTangentialVelocity = sine * people[j].velocity.x - cosine * people[j].velocity.y;
+  if ((closestDistance > 2 * closestPerson.radius || closestPerson !== personHovering) && personHovering) {
+    unhoverPeople();
+  }
 
-      if (iNormalVelocity <= jNormalVelocity) continue;
+  if (closestDistance <= 2 * closestPerson.radius && !personHovering) {
+    erasePeople([closestPerson]);
+    personHovering = closestPerson;
+    drawPeople([closestPerson]);
+  }
+}
 
-      count.dailyCollisions++;
 
-      [people[i].velocity.x, people[i].velocity.y, people[j].velocity.x, people[j].velocity.y] = [
-        cosine * jNormalVelocity + sine * iTangentialVelocity,
-        sine * jNormalVelocity - cosine * iTangentialVelocity,
-        cosine * iNormalVelocity + sine * jTangentialVelocity,
-        sine * iNormalVelocity - cosine * jTangentialVelocity];
+export function unhoverPeople() {
+  if (personHovering) {
+    erasePeople([personHovering]);
+    let person = personHovering;
+    personHovering = null;
+    drawPeople([person]);
+  }
+}
 
-      if (people[i].state === "healthy" && people[j].state === "infected") {
-        people[i].setState("infected");
-        count.healthy--;
-        count.infected++;
-        count.dailyInfections++;
-      }
-      else if (people[i].state === "infected" && people[j].state === "healthy") {
-        people[j].setState("infected");
-        count.healthy--;
-        count.infected++;
-        count.dailyInfections++;
+
+
+
+function collideAllPeople() {
+  for (let i = 0; i < people.length; i++) {
+    for (let j = i + 1; j < people.length; j++) {
+      let xDistance = people[j].position.x - people[i].position.x;
+      let yDistance = people[j].position.y - people[i].position.y;
+      let totalDistance = Math.hypot(xDistance, yDistance);
+
+      if (totalDistance <= people[i].radius + people[j].radius) {
+        let sine = yDistance / totalDistance;
+        let cosine = xDistance / totalDistance;
+
+        let iNormalVelocity = cosine * people[i].velocity.x + sine * people[i].velocity.y;
+        let iTangentialVelocity = sine * people[i].velocity.x - cosine * people[i].velocity.y;
+        let jNormalVelocity = cosine * people[j].velocity.x + sine * people[j].velocity.y;
+        let jTangentialVelocity = sine * people[j].velocity.x - cosine * people[j].velocity.y;
+
+        if (iNormalVelocity <= jNormalVelocity) continue;
+
+        count.dailyCollisions++;
+
+        [people[i].velocity.x, people[i].velocity.y, people[j].velocity.x, people[j].velocity.y] = [
+          cosine * jNormalVelocity + sine * iTangentialVelocity,
+          sine * jNormalVelocity - cosine * iTangentialVelocity,
+          cosine * iNormalVelocity + sine * jTangentialVelocity,
+          sine * iNormalVelocity - cosine * jTangentialVelocity];
+
+        if (people[i].state === "healthy" && people[j].state === "infected") {
+          people[i].setState("infected");
+          count.healthy--;
+          count.infected++;
+          count.dailyInfections++;
+        }
+        else if (people[i].state === "infected" && people[j].state === "healthy") {
+          people[j].setState("infected");
+          count.healthy--;
+          count.infected++;
+          count.dailyInfections++;
+        }
       }
     }
   }
 }
 
 
-export function checkWallCollisions(person) {
+function collideWithWalls(person, walls) {
   if (person.position.x - person.radius <= 0) {
     person.velocity.x = Math.abs(person.velocity.x);
     person.position.x = 2 * person.radius - person.position.x;
@@ -218,39 +266,62 @@ export function checkWallCollisions(person) {
     person.velocity.y = -Math.abs(person.velocity.y);
     person.position.y = 2 * (animationCanvas.height - person.radius) - person.position.y;
   }
+
+  for (let wall of walls) {
+    if (wall.length === 0) {
+      collideWithWallPoint(person, wall, "start");
+      continue;
+    }
+
+    let sine = wall.dy / wall.length;
+    let cosine = wall.dx / wall.length;
+
+    let normalDistance = sine * (person.position.x - wall.start.x) - cosine * (person.position.y - wall.start.y);
+    let tangentialDistance = cosine * (person.position.x - wall.start.x) + sine * (person.position.y - wall.start.y);
+
+    if (Math.abs(normalDistance) <= person.radius + wall.thickness / 2 && 0 <= tangentialDistance && tangentialDistance <= wall.length) {
+      let normalVelocity = sine * person.velocity.x - cosine * person.velocity.y;
+      let tangentialVelocity = cosine * person.velocity.x + sine * person.velocity.y;
+
+      if (normalDistance * normalVelocity >= 0) continue;
+
+      [person.velocity.x, person.velocity.y] = [
+        - sine * normalVelocity + cosine * tangentialVelocity,
+        cosine * normalVelocity + sine * tangentialVelocity];
+
+      continue;
+    }
+
+    if (collideWithWallPoint(person, wall, "start")) continue;
+    if (collideWithWallPoint(person, wall, "end")) continue;
+  }
 }
 
 
-export function checkMouseHover(event) {
-  let mouseX = event.clientX - animationCanvas.offsetLeft;
-  let mouseY = event.clientY - animationCanvas.offsetTop;
-  let closestPerson;
-  let closestDistance;
+function collideWithWallPoint(person, wall, pointString) {
+  let xDistanceToPoint = wall[pointString].x - person.position.x;
+  let yDistanceToPoint = wall[pointString].y - person.position.y;
+  let totalDistanceToPoint = Math.hypot(xDistanceToPoint, yDistanceToPoint);
 
-  for (let person of people) {
-    let distance = Math.hypot(person.position.x - mouseX, person.position.y - mouseY);
-    if (!closestPerson) {
-      closestPerson = person;
-      closestDistance = distance;
-    }
-    else if (distance < closestDistance) {
-      closestPerson = person;
-      closestDistance = distance;
-    }
-  }
+  if (totalDistanceToPoint <= (person.radius + wall.thickness / 2)) {
+    let sine = yDistanceToPoint / totalDistanceToPoint;
+    let cosine = xDistanceToPoint / totalDistanceToPoint;
 
-  if ((closestDistance > 2 * closestPerson.radius || closestPerson !== personHovering) && personHovering) {
-    unhoverPerson(personHovering);
-    personHovering = null;
-  }
+    let normalVelocity = cosine * person.velocity.x + sine * person.velocity.y;
+    let tangentialVelocity = sine * person.velocity.x - cosine * person.velocity.y;
 
-  if (closestDistance <= 2 * closestPerson.radius && !personHovering) {
-    hoverPerson(closestPerson);
-    personHovering = closestPerson;
+    if (normalVelocity <= 0) return true;
+
+    [person.velocity.x, person.velocity.y] = [
+      - cosine * normalVelocity + sine * tangentialVelocity,
+      - sine * normalVelocity - cosine * tangentialVelocity];
+
+    return true;
   }
+  return false;
 }
 
 
 function areColliding(person, otherPerson) {
-  return Math.hypot(person.position.x - otherPerson.position.x, person.position.y - otherPerson.position.y) <= (person.radius + otherPerson.radius)
+  return Math.hypot(person.position.x - otherPerson.position.x, person.position.y - otherPerson.position.y) <= (person.radius + otherPerson.radius);
 }
