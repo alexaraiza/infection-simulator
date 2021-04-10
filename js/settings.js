@@ -3,13 +3,13 @@ import { drawPeople, erasePeople } from "./animations/canvas.js";
 
 
 export const COLORS = {
-  "healthy": "#7fdf1f",
-  "infected": "#df1f1f",
-  "immune": "#1f7fdf",
-  "healthyHover": "#5fa717",
-  "infectedHover": "#a71717",
-  "immuneHover": "#175fa7",
-  "wall": "#000000",
+  healthy: "#7fdf1f",
+  infected: "#df1f1f",
+  immune: "#1f7fdf",
+  healthyHover: "#5fa717",
+  infectedHover: "#a71717",
+  immuneHover: "#175fa7",
+  wall: "#000000",
 }
 
 const DEFAULT_HEALTHY_PEOPLE = 99;
@@ -25,6 +25,10 @@ const DEFAULT_IMMUNE_TIME = 180;
 const DEFAULT_WALL_THICKNESS = 5;
 
 const MAX_PEOPLE = 1000;
+const MAX_SPEED = 100;
+const MAX_RADIUS = 10;
+
+
 export let MONITOR_REFRESH_RATE = 60;
 
 export let personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
@@ -39,29 +43,24 @@ export let speedIsZero = false;
 
 export function resetSettings() {
   personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
-
   personRadius = DEFAULT_RADIUS_INPUT;
-
   infectedFrames = DEFAULT_INFECTED_TIME * MONITOR_REFRESH_RATE;
   immuneFrames = DEFAULT_IMMUNE_TIME * MONITOR_REFRESH_RATE;
+}
 
+export function resetPeople() {
+  people.removeAllPeople();
   people.add(DEFAULT_HEALTHY_PEOPLE, "healthy");
   people.add(DEFAULT_INFECTED_PEOPLE, "infected");
   people.add(DEFAULT_IMMUNE_PEOPLE, "immune");
   drawPeople(people.people);
-
-  resetInputs();
 }
 
-function resetInputs() {
-  healthyCount.max = MAX_PEOPLE;
-  infectedCount.max = MAX_PEOPLE;
-  immuneCount.max = MAX_PEOPLE;
-
+export function resetInputs() {
   setPeopleCountInputs();
   setInitialSpeedInputs(DEFAULT_SPEED_INPUT);
   setInitialRadiusInputs(DEFAULT_RADIUS_INPUT);
-  
+
   infectedTime.value = DEFAULT_INFECTED_TIME;
   immuneTime.value = DEFAULT_IMMUNE_TIME;
   infectedTime.previousValue = DEFAULT_INFECTED_TIME;
@@ -71,36 +70,27 @@ function resetInputs() {
 }
 
 
-export function setPeopleCounts(event) {
-  const target = event.target;
-  let input = parseInt(target.value);
+export function setPeopleCounts(target) {
+  let inputNumber = getInputNumber(target.value, 0, MAX_PEOPLE);
 
-  if (isNaN(input)) {
+  if (inputNumber === undefined) {
     target.value = target.previousValue;
     return;
   }
 
-  if (input < 0) {
-    input = 0;
-  }
-  else if (input > MAX_PEOPLE) {
-    input = MAX_PEOPLE;
-  }
-
   let state = target.id.slice(0, -5);
 
-  if (input < target.previousValue) {
-    let removedPeople = people.remove(target.previousValue - input, state);
+  if (inputNumber < target.previousValue) {
+    let removedPeople = people.remove(target.previousValue - inputNumber, state);
     erasePeople(removedPeople);
   }
   else {
-    let peopleToAdd = input - target.previousValue;
+    let peopleToAdd = inputNumber - target.previousValue;
     let removedPeople = people.removeExcessPeople(peopleToAdd + people.count.total - MAX_PEOPLE, state);
     let addedPeople = people.add(peopleToAdd, state);
     erasePeople(removedPeople);
     drawPeople(addedPeople);
   }
-  setPeopleCountInputs();
 }
 
 export function setPeopleCountInputs() {
@@ -115,21 +105,14 @@ export function setPeopleCountInputs() {
 
 
 export function setInitialSpeeds() {
-  let input = parseInt(speedInput.value);
+  let inputNumber = getInputNumber(speedInput.value, 0, MAX_SPEED);
 
-  if (isNaN(input)) {
+  if (inputNumber === undefined) {
     speedInput.value = speedInput.previousValue;
     return;
   }
 
-  if (input < 0) {
-    input = 0;
-  }
-  else if (input > 100) {
-    input = 100;
-  }
-
-  let ratio = input / (personInitialSpeed * MONITOR_REFRESH_RATE);
+  let ratio = inputNumber / (personInitialSpeed * MONITOR_REFRESH_RATE);
   if (ratio === 0) {
     speedIsZero = true;
   }
@@ -139,70 +122,74 @@ export function setInitialSpeeds() {
       person.velocity.x *= ratio;
       person.velocity.y *= ratio;
     }
-    personInitialSpeed = input / MONITOR_REFRESH_RATE;
+    personInitialSpeed = inputNumber / MONITOR_REFRESH_RATE;
   }
-  setInitialSpeedInputs(input);
+  setInitialSpeedInputs(inputNumber);
 }
 
-function setInitialSpeedInputs(input) {
-  speedInput.value = input;
-  speedSlider.value = input;
+function setInitialSpeedInputs(speed) {
+  speedInput.value = speed;
+  speedSlider.value = speed;
 
-  speedInput.previousValue = input;
+  speedInput.previousValue = speed;
 }
 
 
 export function setInitialRadiuses() {
-  let input = parseInt(radiusInput.value);
+  let inputNumber = getInputNumber(radiusInput.value, 0, MAX_RADIUS);
 
-  if (isNaN(input)) {
+  if (inputNumber === undefined) {
     radiusInput.value = radiusInput.previousValue;
     return;
   }
 
-  if (input < 0) {
-    input = 0;
-  }
-  else if (input > 10) {
-    input = 10;
-  }
-
   for (let person of people.people) {
-    person.radius = input;
+    person.radius = inputNumber;
   }
 
-  personRadius = input;
-  setInitialRadiusInputs(input);
+  personRadius = inputNumber;
+  setInitialRadiusInputs(inputNumber);
 }
 
-function setInitialRadiusInputs(input) {
-  radiusInput.value = input;
-  radiusSlider.value = input;
+function setInitialRadiusInputs(radius) {
+  radiusInput.value = radius;
+  radiusSlider.value = radius;
 
-  radiusInput.previousValue = input;
+  radiusInput.previousValue = radius;
 }
 
 
-export function setTimes(event) {
-  const target = event.target;
-  let input = parseFloat(target.value);
+export function setTimes(target) {
+  let inputNumber = getInputNumber(target.value, 0);
 
-  if (isNaN(input)) {
+  if (inputNumber === undefined) {
     target.value = target.previousValue;
     return;
   }
 
-  if (input < 0) {
-    input = 0;
-  }
-
   if (target.id.slice(0, -4) === "infected") {
-    infectedFrames = input * MONITOR_REFRESH_RATE;
+    infectedFrames = inputNumber * MONITOR_REFRESH_RATE;
   }
   else if (target.id.slice(0, -4) === "immune") {
-    immuneFrames = input * MONITOR_REFRESH_RATE;
+    immuneFrames = inputNumber * MONITOR_REFRESH_RATE;
   }
 
-  target.value = input;
-  target.previousValue = input;
+  target.value = inputNumber;
+  target.previousValue = inputNumber;
+}
+
+
+function getInputNumber(inputString, minNumber, maxNumber) {
+  let inputNumber = parseInt(inputString);
+
+  if (isNaN(inputNumber)) return;
+
+  if (inputNumber < minNumber) {
+    inputNumber = minNumber;
+  }
+  else if (inputNumber > maxNumber) {
+    inputNumber = maxNumber;
+  }
+
+  return inputNumber;
 }

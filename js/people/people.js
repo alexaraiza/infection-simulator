@@ -1,54 +1,66 @@
 import Person from "./Person.js";
-import { frameCount } from "../main.js";
 import { personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
 import { walls } from "../walls/walls.js";
-import { drawPeople, erasePeople } from "../animations/canvas.js";
+import { drawPeople, erasePeople, clearPeople } from "../animations/canvas.js";
 
 
 export const people = [];
-export let personHovering = null;
+export let hoveringPerson = null;
 
 
 export const count = {
-  "total": 0,
-  "healthy": 0,
-  "infected": 0,
-  "immune": 0,
-  "dailyCollisions": 0,
-  "dailyInfections": 0,
-  reset: function() {
-    for (let key in count) {
-      if (key.startsWith("daily")) {
-        this[key] = 0;
-      }
-    }
-  }
-}
-
-export const countHistory = {
-  "days": [0],
-  "total": [],
-  "healthy": [],
-  "infected": [],
-  "immune": [],
-  "dailyCollisions": [],
-  "dailyInfections": [],
-  addCurrentCount: function() {
-    this.days.push(this.days.length);
-
-    for (let key in count) {
-      if (typeof count[key] === "number") {
-        this[key].push(count[key]);
-      }
+  total: 0,
+  healthy: 0,
+  infected: 0,
+  immune: 0,
+  dailyCollisions: 0,
+  dailyInfections: 0,
+  dailyReset: function() {
+    for (let key of COUNT_DAILY_KEYS) {
+      this[key] = 0;
     }
   },
-  setInitialCount: function() {
-    const KEYS = ["total", "healthy", "infected", "immune"];
-    for (let key of KEYS) {
-      this[key][0] = count[key];
+  reset: function() {
+    for (let key of COUNT_KEYS) {
+      this[key] = 0;
     }
   }
 }
+
+const COUNT_KEYS = Object.keys(count).filter(key => typeof(count[key]) !== 'function');
+const COUNT_DAILY_KEYS = COUNT_KEYS.filter(key => key.startsWith("daily"));
+
+
+export const countHistory = {
+  days: [0],
+  total: [],
+  healthy: [],
+  infected: [],
+  immune: [],
+  dailyCollisions: [],
+  dailyInfections: [],
+  addCurrentCount: function() {
+    this.days.push(this.days.length);
+    for (let key of COUNT_HISTORY_KEYS_WITHOUT_DAYS) {
+      this[key].push(count[key]);
+    }
+  },
+  setLastCount: function() {
+    for (let key of COUNT_HISTORY_PERSON_KEYS) {
+      this[key][0] = count[key];
+    }
+  },
+  reset: function() {
+    for (let key of COUNT_HISTORY_KEYS) {
+      this[key].splice(0);
+    }
+    this.days.push(0);
+  }
+}
+
+const COUNT_HISTORY_KEYS = Object.keys(countHistory).filter(key => typeof(countHistory[key]) !== 'function');
+const COUNT_HISTORY_KEYS_WITHOUT_DAYS = COUNT_HISTORY_KEYS.filter(key => key !== "days");
+const COUNT_HISTORY_PERSON_KEYS = COUNT_HISTORY_KEYS_WITHOUT_DAYS.filter(key => !key.startsWith("daily"));
 
 
 export function move() {
@@ -62,8 +74,7 @@ export function collide() {
   for (let person of people) {
     collideWithWalls(person, walls);
   }
-
-  collideAllPeople();
+  collidePeople();
 }
 
 
@@ -72,10 +83,13 @@ export function add(n, state) {
 
   for (var addedCount = 0; addedCount < n; addedCount++) {
     let tries = 0;
+    let createdPerson;
+    let personIsValid;
+
     do {
       let velocityAngle = 2 * Math.PI * Math.random();
-      var createdPerson = new Person(personRadius + Math.random() * (animationCanvas.width - 2 * personRadius), personRadius + Math.random() * (animationCanvas.height - 2 * personRadius), personInitialSpeed * Math.cos(velocityAngle), personInitialSpeed * Math.sin(velocityAngle), personRadius, state);
-      var personIsValid = true;
+      createdPerson = new Person(personRadius + Math.random() * (animationCanvas.width - 2 * personRadius), personRadius + Math.random() * (animationCanvas.height - 2 * personRadius), personInitialSpeed * Math.cos(velocityAngle), personInitialSpeed * Math.sin(velocityAngle), personRadius, state);
+      personIsValid = true;
 
       for (let existingPerson of people) {
         if (areColliding(createdPerson, existingPerson)) {
@@ -83,10 +97,8 @@ export function add(n, state) {
           break;
         }
       }
-
-      tries++
     }
-    while (!personIsValid && tries < 1000);
+    while (!personIsValid && ++tries < 1000);
 
     if (personIsValid) {
       people.push(createdPerson);
@@ -148,7 +160,15 @@ export function removeExcessPeople(excessPeople, incomingState) {
 }
 
 
-export function checkStateChange() {
+export function removeAllPeople() {
+  people.splice(0);
+  count.reset();
+  countHistory.reset();
+  clearPeople();
+}
+
+
+export function checkStateChange(frameCount) {
   for (let person of people) {
     if (person.state === "infected" && frameCount - person.stateChangeFrame > infectedFrames) {
       person.setState("immune");
@@ -164,12 +184,14 @@ export function checkStateChange() {
 }
 
 
-export function checkMouseHover(mouseX, mouseY) {
+export function hoverMouse(x, y) {
+  if (people.length === 0) return;
+
   let closestPerson;
   let closestDistance;
 
   for (let person of people) {
-    let distance = Math.hypot(person.position.x - mouseX, person.position.y - mouseY);
+    let distance = Math.hypot(person.position.x - x, person.position.y - y);
     if (!closestPerson) {
       closestPerson = person;
       closestDistance = distance;
@@ -180,23 +202,34 @@ export function checkMouseHover(mouseX, mouseY) {
     }
   }
 
-  if ((closestDistance > 2 * closestPerson.radius || closestPerson !== personHovering) && personHovering) {
+  if ((closestDistance > 2 * closestPerson.radius || closestPerson !== hoveringPerson) && hoveringPerson) {
     unhoverPeople();
   }
 
-  if (closestDistance <= 2 * closestPerson.radius && !personHovering) {
-    erasePeople([closestPerson]);
-    personHovering = closestPerson;
-    drawPeople([closestPerson]);
+  if (closestDistance <= 2 * closestPerson.radius && !hoveringPerson) {
+    hoverPerson(closestPerson);
   }
 }
 
 
+export function redrawPeople() {
+  clearPeople();
+  drawPeople(people);
+}
+
+
+function hoverPerson(person) {
+  erasePeople([person]);
+  hoveringPerson = person;
+  drawPeople([person]);
+}
+
+
 export function unhoverPeople() {
-  if (personHovering) {
-    erasePeople([personHovering]);
-    let person = personHovering;
-    personHovering = null;
+  if (hoveringPerson) {
+    erasePeople([hoveringPerson]);
+    let person = hoveringPerson;
+    hoveringPerson = null;
     drawPeople([person]);
   }
 }
@@ -204,7 +237,7 @@ export function unhoverPeople() {
 
 
 
-function collideAllPeople() {
+function collidePeople() {
   for (let i = 0; i < people.length; i++) {
     for (let j = i + 1; j < people.length; j++) {
       let xDistance = people[j].position.x - people[i].position.x;
@@ -228,7 +261,8 @@ function collideAllPeople() {
           cosine * jNormalVelocity + sine * iTangentialVelocity,
           sine * jNormalVelocity - cosine * iTangentialVelocity,
           cosine * iNormalVelocity + sine * jTangentialVelocity,
-          sine * iNormalVelocity - cosine * jTangentialVelocity];
+          sine * iNormalVelocity - cosine * jTangentialVelocity
+        ];
 
         if (people[i].state === "healthy" && people[j].state === "infected") {
           people[i].setState("infected");
@@ -249,6 +283,12 @@ function collideAllPeople() {
 
 
 function collideWithWalls(person, walls) {
+  collideWithExteriorWalls(person);
+  collideWithInteriorWalls(person, walls);
+}
+
+
+function collideWithExteriorWalls(person) {
   if (person.position.x - person.radius <= 0) {
     person.velocity.x = Math.abs(person.velocity.x);
     person.position.x = 2 * person.radius - person.position.x;
@@ -266,7 +306,10 @@ function collideWithWalls(person, walls) {
     person.velocity.y = -Math.abs(person.velocity.y);
     person.position.y = 2 * (animationCanvas.height - person.radius) - person.position.y;
   }
+}
 
+
+function collideWithInteriorWalls(person) {
   for (let wall of walls) {
     if (wall.length === 0) {
       collideWithWallPoint(person, wall, "start");
@@ -287,7 +330,8 @@ function collideWithWalls(person, walls) {
 
       [person.velocity.x, person.velocity.y] = [
         - sine * normalVelocity + cosine * tangentialVelocity,
-        cosine * normalVelocity + sine * tangentialVelocity];
+        cosine * normalVelocity + sine * tangentialVelocity
+      ];
 
       continue;
     }
@@ -314,7 +358,8 @@ function collideWithWallPoint(person, wall, pointString) {
 
     [person.velocity.x, person.velocity.y] = [
       - cosine * normalVelocity + sine * tangentialVelocity,
-      - sine * normalVelocity - cosine * tangentialVelocity];
+      - sine * normalVelocity - cosine * tangentialVelocity
+    ];
 
     return true;
   }

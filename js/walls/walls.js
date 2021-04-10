@@ -1,52 +1,62 @@
 import Wall from "./Wall.js";
-import { mouseIsDown } from "../main.js";
+import { wallThickness } from "../settings.js";
 import { drawWalls, clearWalls } from "../animations/canvas.js";
 
 
 export const walls = [];
-export let wallHovering = null;
+export let hoveringWall = null;
 let wallInConstruction = null;
 
 
-export function newWall(x, y, thickness) {
-  wallHovering = wallInConstruction = new Wall(x, y, thickness);
+export function newWall(x, y) {
+  hoveringWall = wallInConstruction = new Wall(x, y, wallThickness);
   redrawWalls(walls.concat(wallInConstruction));
 }
 
 
 export function deleteWallInConstruction() {
-  wallHovering = wallInConstruction = null;
+  hoveringWall = wallInConstruction = null;
   redrawWalls(walls);
 }
 
 
-export function editWall(mouseX, mouseY) {
+export function editWall(x, y, mouseIsDown) {
+  if (!wallInConstruction) return;
   if (mouseIsDown) {
-    wallInConstruction.drag(mouseX, mouseY);
+    wallInConstruction.drag(x, y);
   }
   else {
-    wallInConstruction.move(mouseX, mouseY);
+    wallInConstruction.move(x, y);
   }
   redrawWalls(walls.concat(wallInConstruction));
 }
 
 
 export function placeWall() {
+  if (!wallInConstruction) return;
   wallInConstruction.place();
   walls.push(wallInConstruction);
-  wallHovering = wallInConstruction = null;
+  hoveringWall = wallInConstruction = null;
   redrawWalls(walls);
 }
 
 
-export function removeWall() {
-  if (!wallHovering) return;
-  walls.splice(walls.indexOf(wallHovering), 1);
+export function removeAllWalls() {
+  walls.splice(0);
   redrawWalls(walls);
 }
 
 
-export function checkMouseHover(mouseX, mouseY) {
+export function removeHoveringWall() {
+  if (!hoveringWall) return;
+  walls.splice(walls.indexOf(hoveringWall), 1);
+  redrawWalls(walls);
+}
+
+
+export function hoverMouse(x, y) {
+  if (walls.length === 0) return;
+
   let closestWall;
   let closestDistance;
 
@@ -54,21 +64,21 @@ export function checkMouseHover(mouseX, mouseY) {
     let distance;
 
     if (wall.length === 0) {
-      distance = Math.hypot(wall.start.x - mouseX, wall.start.y - mouseY);
+      distance = Math.hypot(wall.start.x - x, wall.start.y - y);
     }
     else {
       let sine = wall.dy / wall.length;
       let cosine = wall.dx / wall.length;
-      let tangentialDistance = cosine * (mouseX - wall.start.x) + sine * (mouseY - wall.start.y);
+      let tangentialDistance = cosine * (x - wall.start.x) + sine * (y - wall.start.y);
 
       if (tangentialDistance < 0) {
-        distance = Math.hypot(wall.start.x - mouseX, wall.start.y - mouseY);
+        distance = Math.hypot(wall.start.x - x, wall.start.y - y);
       }
       else if (tangentialDistance > wall.length) {
-        distance = Math.hypot(wall.end.x - mouseX, wall.end.y - mouseY);
+        distance = Math.hypot(wall.end.x - x, wall.end.y - y);
       }
       else {
-        distance = Math.abs(sine * (mouseX - wall.start.x) - cosine * (mouseY - wall.start.y));
+        distance = Math.abs(sine * (x - wall.start.x) - cosine * (y - wall.start.y));
       }
     }
 
@@ -81,13 +91,12 @@ export function checkMouseHover(mouseX, mouseY) {
       closestDistance = distance;
     }
   }
-  if (typeof(closestWall) === "undefined") return;
 
-  if ((closestDistance > closestWall.thickness || closestWall !== wallHovering) && wallHovering) {
+  if (hoveringWall && (closestDistance > closestWall.thickness || closestWall !== hoveringWall)) {
     unhoverWalls();
   }
 
-  if (closestDistance <= closestWall.thickness && !wallHovering) {
+  if (closestDistance <= closestWall.thickness && !hoveringWall) {
     hoverWall(closestWall);
   }
 }
@@ -102,12 +111,12 @@ function redrawWalls(walls) {
 
 
 function hoverWall(wall) {
-  wallHovering = wall;
+  hoveringWall = wall;
   redrawWalls(walls);
 }
 
 
 function unhoverWalls() {
-  wallHovering = null;
+  hoveringWall = null;
   redrawWalls(walls);
 }

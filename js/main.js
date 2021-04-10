@@ -1,53 +1,45 @@
 import * as settings from "./settings.js";
 import * as people from "./people/people.js";
 import * as walls from "./walls/walls.js";
-import { drawPeople, clearPeople, resize as resizeCanvas, offsetLeft, offsetTop } from "./animations/canvas.js";
+import { getMousePosition, resize as resizeCanvas } from "./animations/canvas.js";
 import * as chart from "./animations/chart.js";
 
 
-var isPlaying = false;
-export var frameCount = 0;
-var nextFrameID;
+let isPlaying = false;
+export let frameCount = 0;
+let nextFrameID;
 
-let mouseX = 0;
-let mouseY = 0;
-export let mouseIsDown = false;
-let onMouseMove = people.checkMouseHover;
+let mousePosition = [0, 0];
+let mouseIsDown = false;
 
+let selectedAction = "selectPerson";
 
-document.addEventListener("DOMContentLoaded", function() {
-  resizeCanvas();
-
-  settings.resetSettings();
-
-  people.countHistory.setInitialCount();
-
-  chart.create("people");
-
-  addEventListeners();
-});
+const ACTION_MAP = {
+  selectPerson: people.hoverMouse,
+  placeWall: walls.editWall,
+  removeWall: walls.hoverMouse
+}
 
 
 function play() {
   frameCount++;
 
-  people.checkStateChange();
+  people.checkStateChange(frameCount);
 
   if (!settings.speedIsZero) {
     people.move();
     people.collide();
-    people.checkMouseHover(mouseX, mouseY);
+    people.hoverMouse(mousePosition[0], mousePosition[1]);
   }
 
-  clearPeople();
-  drawPeople(people.people);
+  people.redrawPeople();
 
   settings.setPeopleCountInputs();
 
   if (frameCount % settings.MONITOR_REFRESH_RATE === 0) {
     people.countHistory.addCurrentCount();
     chart.update();
-    people.count.reset();
+    people.count.dailyReset();
   }
 
   nextFrameID = window.requestAnimationFrame(play);
@@ -68,152 +60,165 @@ function togglePlayPause() {
 }
 
 
+document.addEventListener("DOMContentLoaded", function() {
+  chart.create("people");
+  reset();
+  addEventListeners();
+});
+
+
+function reset() {
+  resizeCanvas();
+  settings.resetSettings();
+  settings.resetPeople();
+  settings.resetInputs();
+  walls.removeAllWalls();
+  people.countHistory.setLastCount();
+  chart.update();
+  frameCount = 0;
+}
 
 
 function addEventListeners() {
-  for (let element of document.getElementsByClassName("people-count-input")) {
-    element.addEventListener("change", function() {
-      settings.setPeopleCounts({ target: element });
-      if (frameCount === 0) {
-        people.countHistory.setInitialCount();
-        chart.update();
-      }
-    });
-  }
-
-  for (let element of document.getElementsByClassName("people-count-button minus")) {
-    let input = document.getElementById(element.id.slice(0, -2));
-    element.addEventListener("click", function() {
-      input.value--;
-      settings.setPeopleCounts({ target: input });
-      if (frameCount === 0) {
-        people.countHistory.setInitialCount();
-        chart.update();
-      }
-    });
-  }
-
-  for (let element of document.getElementsByClassName("people-count-button plus")) {
-    let input = document.getElementById(element.id.slice(0, -2));
-    element.addEventListener("click", function() {
-      input.value++;
-      settings.setPeopleCounts({ target: input });
-      if (frameCount === 0) {
-        people.countHistory.setInitialCount();
-        chart.update();
-      }
-    });
-  }
-
-
-  speedSlider.addEventListener("input", function() {
-    speedInput.value = this.value;
-  });
-  speedInput.addEventListener("input", function() {
-    speedSlider.value = this.value;
-  });
-  speedInput.addEventListener("change", settings.setInitialSpeeds);
-  speedSlider.addEventListener("change", settings.setInitialSpeeds);
-
-  radiusSlider.addEventListener("input", function() {
-    radiusInput.value = this.value;
-  });
-  radiusInput.addEventListener("input", function() {
-    radiusSlider.value = this.value;
-  });
-  radiusInput.addEventListener("change", function() {
-    settings.setInitialRadiuses();
-    clearPeople();
-    drawPeople(people.people);
-  });
-  radiusSlider.addEventListener("change", function() {
-    settings.setInitialRadiuses();
-    clearPeople();
-    drawPeople(people.people);
-  });
-
-
-  for (let element of document.getElementsByClassName("person-time-input")) {
-    element.addEventListener("change", settings.setTimes);
-  }
-
-  for (let element of document.getElementsByClassName("person-time-button minus")) {
-    let input = document.getElementById(element.id.slice(0, -2));
-    element.addEventListener("click", function() {
-      input.value--;
-      settings.setTimes({ target: input });
-    });
-  }
-
-  for (let element of document.getElementsByClassName("person-time-button plus")) {
-    let input = document.getElementById(element.id.slice(0, -2));
-    element.addEventListener("click", function() {
-      input.value++;
-      settings.setTimes({ target: input });
-    });
-  }
-
-  selectButton.addEventListener("click", function() {
-    onMouseMove = people.checkMouseHover;
-  });
-
-  placeWallButton.addEventListener("click", function() {
-    onMouseMove = walls.editWall;
-  });
-
-  removeWallButton.addEventListener("click", function() {
-    onMouseMove = walls.checkMouseHover;
-  });
+  addInputEventListeners();
 
   touchBox.addEventListener("mouseenter", function(event) {
-    mouseX = event.clientX - offsetLeft;
-    mouseY = event.clientY - offsetTop;
-    if (onMouseMove === walls.editWall) {
-      walls.newWall(mouseX, mouseY, settings.wallThickness);
+    mousePosition = getMousePosition(event);
+    if (selectedAction === "placeWall") {
+      walls.newWall(mousePosition[0], mousePosition[1]);
     }
   });
 
   touchBox.addEventListener("mouseleave", function() {
-    if (onMouseMove === people.checkMouseHover) {
+    if (selectedAction === "selectPerson") {
       people.unhoverPeople();
     }
-    else if (onMouseMove === walls.editWall) {
+    else if (selectedAction === "placeWall") {
       walls.deleteWallInConstruction();
     }
   });
 
   touchBox.addEventListener("mousemove", function(event) {
-    mouseX = event.clientX - offsetLeft;
-    mouseY = event.clientY - offsetTop;
-    onMouseMove(mouseX, mouseY);
+    mousePosition = getMousePosition(event);
+    ACTION_MAP[selectedAction](mousePosition[0], mousePosition[1], mouseIsDown);
   });
 
   touchBox.addEventListener("click", function() {
-    if (onMouseMove === walls.checkMouseHover) {
-      walls.removeWall();
+    if (selectedAction === "removeWall") {
+      walls.removeHoveringWall();
     }
   });
 
-  touchBox.addEventListener("mousedown", function() {
-    mouseIsDown = true;
-  });
+  touchBox.addEventListener("mousedown", () => mouseIsDown = true);
+  document.addEventListener("mouseup", () => mouseIsDown = false);
 
   touchBox.addEventListener("mouseup", function(event) {
-    mouseX = event.clientX - offsetLeft;
-    mouseY = event.clientY - offsetTop;
-    if (mouseIsDown && onMouseMove === walls.editWall) {
+    mousePosition = getMousePosition(event);
+    if (mouseIsDown && selectedAction === "placeWall") {
       walls.placeWall();
-      walls.newWall(mouseX, mouseY, settings.wallThickness);
+      walls.newWall(mousePosition[0], mousePosition[1]);
     }
   });
 
-  document.addEventListener("mouseup", function() {
-    mouseIsDown = false;
-  });
+  chartSelect.addEventListener("change", () => chart.change(chartSelect.value));
 
-  chartSelect.addEventListener("change", function() {
-    chart.change(chartSelect.value);
-  });
-
+  resetButton.addEventListener("click", reset)
   playPauseButton.addEventListener("click", togglePlayPause);
+}
+
+
+function addInputEventListeners() {
+  for (let element of document.getElementsByClassName("select-person-button")) {
+    element.addEventListener("click", () => selectedAction = "selectPerson");
+  }
+  for (let element of document.getElementsByClassName("place-wall-button")) {
+    element.addEventListener("click", () => selectedAction = "placeWall");
+  }
+  for (let element of document.getElementsByClassName("remove-wall-button")) {
+    element.addEventListener("click", () => selectedAction = "removeWall");
+  }
+
+  settingsButton.addEventListener("click", openSettingsModal);
+  closeSettingsModalButton.addEventListener("click", closeSettingsModal);
+
+  for (let element of document.getElementsByClassName("people-count-input")) {
+    element.addEventListener("change", handlePeopleCountInputChange);
+  }
+
+  for (let element of document.getElementsByClassName("people-count-button")) {
+    let target = document.getElementById(element.id.slice(0, -2));
+    element.addEventListener("click", () => handlePeopleCountButtonClick(target, element.id.slice(-2)));
+  }
+
+  speedSlider.addEventListener("input", () => speedInput.value = speedSlider.value);
+  speedInput.addEventListener("input", () => speedSlider.value = speedInput.value);
+  speedInput.addEventListener("change", handleSpeedInputChange);
+  speedSlider.addEventListener("change", handleSpeedInputChange);
+
+  radiusSlider.addEventListener("input", () => radiusInput.value = radiusSlider.value);
+  radiusInput.addEventListener("input", () => radiusSlider.value = radiusInput.value);
+  radiusInput.addEventListener("change", handleRadiusInputChange);
+  radiusSlider.addEventListener("change", handleRadiusInputChange);
+
+  for (let element of document.getElementsByClassName("time-input")) {
+    element.addEventListener("change", handleTimeInputChange);
+  }
+
+  for (let element of document.getElementsByClassName("time-button")) {
+    let target = document.getElementById(element.id.slice(0, -2));
+    element.addEventListener("click", () => handleTimeButtonClick(target, element.id.slice(-2)));
+  }
+}
+
+
+function openSettingsModal() {
+  settingsModal.style.visibility = "visible";
+  settingsModal.style.opacity = 1;
+  window.addEventListener("click", settingsModalClick);
+}
+
+function closeSettingsModal() {
+  settingsModal.style.opacity = "";
+  setTimeout(() => settingsModal.style.visibility = "", 250);
+  window.removeEventListener("click", settingsModalClick);
+}
+
+function settingsModalClick(event) {
+  if (event.target === settingsModal) {
+    closeSettingsModal();
+  }
+}
+
+function handlePeopleCountInputChange(event) {
+  settings.setPeopleCounts(event.target);
+  settings.setPeopleCountInputs();
+  if (frameCount === 0) {
+    people.countHistory.setLastCount();
+    chart.update();
+  }
+}
+
+function handlePeopleCountButtonClick(target, operation) {
+  if (operation === "++") target.value++;
+  else target.value--;
+  handlePeopleCountInputChange({ target: target });
+}
+
+function handleSpeedInputChange() {
+  settings.setInitialSpeeds();
+}
+
+function handleRadiusInputChange() {
+  settings.setInitialRadiuses();
+  people.redrawPeople();
+}
+
+function handleTimeInputChange(event) {
+  settings.setTimes(event.target);
+}
+
+function handleTimeButtonClick(target, operation) {
+  if (operation === "++") target.value++;
+  else target.value--;
+  handleTimeInputChange({ target: target });
 }

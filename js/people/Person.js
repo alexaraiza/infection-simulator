@@ -14,7 +14,7 @@ export default class Person {
     this.state = state;
     this.stateChangeFrame = frameCount;
   }
-  
+
   move() {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
