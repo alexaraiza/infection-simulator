@@ -1,23 +1,23 @@
 import { COLORS } from "../settings.js";
-import { personHovering } from "../people/people.js";
-import { wallHovering } from "../walls/walls.js";
+import { hoveringPerson } from "../people/people.js";
+import { hoveringWall } from "../walls/walls.js";
 
 
 const peopleContext = animationCanvas.getContext("2d");
 const wallsContext = wallsCanvas.getContext("2d");
 
 
-let canvasHeight = parseInt(window.innerHeight - 360);
-let canvasWidth = parseInt(0.6 * window.innerWidth);
-export let offsetLeft;
-export let offsetTop;
+let canvasHeight;
+let canvasWidth;
+let offsetLeft;
+let offsetTop;
 
 
 export function drawPeople(people) {
   for (let person of people) {
     peopleContext.beginPath();
-    peopleContext.arc(person.position.x, person.position.y, person.radius, 0, 2 * Math.PI);
-    if (person === personHovering) {
+    peopleContext.arc(person.position.x, person.position.y, person.radius, 0, 2*Math.PI);
+    if (person === hoveringPerson) {
       peopleContext.fillStyle = COLORS[person.state + "Hover"];
     }
     else {
@@ -30,7 +30,7 @@ export function drawPeople(people) {
 export function erasePeople(people) {
   for (let person of people) {
     peopleContext.beginPath();
-    peopleContext.arc(person.position.x, person.position.y, person.radius + 0.4, 0, 2 * Math.PI);
+    peopleContext.arc(person.position.x, person.position.y, person.radius + 0.4, 0, 2*Math.PI);
     peopleContext.fillStyle = getComputedStyle(animation).backgroundColor;
     peopleContext.fill();
   }
@@ -44,7 +44,7 @@ export function drawWalls(walls) {
     wallsContext.lineTo(wall.end.x, wall.end.y);
     wallsContext.lineWidth = wall.thickness;
     wallsContext.lineCap = "round";
-    if (wall === wallHovering) {
+    if (wall === hoveringWall) {
       wallsContext.strokeStyle = COLORS["wall"] + "7f";
     }
     else {
@@ -65,6 +65,26 @@ export function clearWalls() {
 
 
 export function resize() {
+  if (window.innerWidth < 736) {
+    canvasHeight = parseInt(window.innerHeight - 0.94*window.innerWidth);
+    canvasWidth = parseInt(window.innerWidth);
+  }
+  else {
+    if (window.innerWidth < 1200) {
+      canvasHeight = parseInt(window.innerHeight - 360);
+    }
+    else if (window.innerWidth < 1800) {
+      canvasHeight = parseInt(window.innerHeight - 432);
+    }
+    else if (window.innerWidth < 2400) {
+      canvasHeight = parseInt(window.innerHeight - 540);
+    }
+    else {
+      canvasHeight = parseInt(window.innerHeight - 720);
+    }
+    canvasWidth = parseInt(0.6 * window.innerWidth);
+  }
+
   animation.style.height = canvasHeight + "px";
   animation.style.width = canvasWidth + "px";
   animationCanvas.height = canvasHeight;
@@ -75,4 +95,9 @@ export function resize() {
   let animationRectangle = animation.getBoundingClientRect();
   offsetLeft = parseInt(animationRectangle.x);
   offsetTop = parseInt(animationRectangle.y);
+}
+
+
+export function getMousePosition(event) {
+  return [event.clientX - offsetLeft, event.clientY - offsetTop];
 }
