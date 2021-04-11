@@ -2,50 +2,65 @@ import * as people from "./people/people.js";
 import { drawPeople, erasePeople } from "./animations/canvas.js";
 
 
+const DEFAULT_HEALTHY_PEOPLE = 99;
+const DEFAULT_INFECTED_PEOPLE = 1;
+const DEFAULT_IMMUNE_PEOPLE = 0;
+
+const DEFAULT_INFECTION_RATE = 20;
+const DEFAULT_DEATH_RATE = 5;
+
+const DEFAULT_INFECTED_TIME = 10;
+const DEFAULT_IMMUNE_TIME = 180;
+
+const DEFAULT_SPEED_INPUT = 50;
+const DEFAULT_RADIUS_INPUT = 5;
+
+const DEFAULT_WALL_THICKNESS = 5;
+
+const MAX_PEOPLE = 1000;
+const MAX_RATE = 100;
+const MAX_SPEED = 100;
+const MAX_RADIUS = 10;
+
+
 export const COLORS = {
   healthy: "#7fdf1f",
   infected: "#df1f1f",
   immune: "#1f7fdf",
+  deaths: "#000000",
   healthyHover: "#5fa717",
   infectedHover: "#a71717",
   immuneHover: "#175fa7",
   wall: "#000000",
 }
 
-const DEFAULT_HEALTHY_PEOPLE = 99;
-const DEFAULT_INFECTED_PEOPLE = 1;
-const DEFAULT_IMMUNE_PEOPLE = 0;
-
-const DEFAULT_SPEED_INPUT = 50;
-const DEFAULT_RADIUS_INPUT = 5;
-
-const DEFAULT_INFECTED_TIME = 10;
-const DEFAULT_IMMUNE_TIME = 180;
-
-const DEFAULT_WALL_THICKNESS = 5;
-
-const MAX_PEOPLE = 1000;
-const MAX_SPEED = 100;
-const MAX_RADIUS = 10;
-
-
 export let MONITOR_REFRESH_RATE = 60;
 
-export let personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
-export let personRadius = DEFAULT_RADIUS_INPUT;
+export let infectionRate = DEFAULT_INFECTION_RATE / 100;
+export let deathRate = DEFAULT_DEATH_RATE / 100;
+
 export let infectedFrames = DEFAULT_INFECTED_TIME * MONITOR_REFRESH_RATE;
 export let immuneFrames = DEFAULT_IMMUNE_TIME * MONITOR_REFRESH_RATE;
+
+export let speed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
+export let radius = DEFAULT_RADIUS_INPUT;
 
 export let wallThickness = DEFAULT_WALL_THICKNESS;
 
 export let speedIsZero = false;
 
 
+
+
 export function resetSettings() {
-  personInitialSpeed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
-  personRadius = DEFAULT_RADIUS_INPUT;
+  infectionRate = DEFAULT_INFECTION_RATE / 100;
+  deathRate = DEFAULT_DEATH_RATE / 100;
+
   infectedFrames = DEFAULT_INFECTED_TIME * MONITOR_REFRESH_RATE;
   immuneFrames = DEFAULT_IMMUNE_TIME * MONITOR_REFRESH_RATE;
+
+  speed = DEFAULT_SPEED_INPUT / MONITOR_REFRESH_RATE;
+  radius = DEFAULT_RADIUS_INPUT;
 }
 
 export function resetPeople() {
@@ -58,15 +73,15 @@ export function resetPeople() {
 
 export function resetInputs() {
   setPeopleCountInputs();
-  setInitialSpeedInputs(DEFAULT_SPEED_INPUT);
-  setInitialRadiusInputs(DEFAULT_RADIUS_INPUT);
+  setInfectionRateInputs(DEFAULT_INFECTION_RATE);
+  setDeathRateInputs(DEFAULT_DEATH_RATE);
+  setSpeedInputs(DEFAULT_SPEED_INPUT);
+  setRadiusInputs(DEFAULT_RADIUS_INPUT);
 
   infectedTime.value = DEFAULT_INFECTED_TIME;
   immuneTime.value = DEFAULT_IMMUNE_TIME;
   infectedTime.previousValue = DEFAULT_INFECTED_TIME;
   immuneTime.previousValue = DEFAULT_IMMUNE_TIME;
-
-  chartSelect.value = "people";
 }
 
 
@@ -104,58 +119,43 @@ export function setPeopleCountInputs() {
 }
 
 
-export function setInitialSpeeds() {
-  let inputNumber = getInputNumber(speedInput.value, 0, MAX_SPEED);
+export function setInfectionRate() {
+  let inputNumber = getInputNumber(infectionRateInput.value, 0, MAX_RATE);
 
   if (inputNumber === undefined) {
-    speedInput.value = speedInput.previousValue;
+    infectionRateInput.value = infectionRateInput.previousValue;
     return;
   }
 
-  let ratio = inputNumber / (personInitialSpeed * MONITOR_REFRESH_RATE);
-  if (ratio === 0) {
-    speedIsZero = true;
-  }
-  else {
-    speedIsZero = false;
-    for (let person of people.people) {
-      person.velocity.x *= ratio;
-      person.velocity.y *= ratio;
-    }
-    personInitialSpeed = inputNumber / MONITOR_REFRESH_RATE;
-  }
-  setInitialSpeedInputs(inputNumber);
+  infectionRate = inputNumber;
+  setInfectionRateInputs(inputNumber);
 }
 
-function setInitialSpeedInputs(speed) {
-  speedInput.value = speed;
-  speedSlider.value = speed;
+function setInfectionRateInputs(infectionRate) {
+  infectionRateInput.value = infectionRate;
+  infectionRateSlider.value = infectionRate;
 
-  speedInput.previousValue = speed;
+  infectionRateInput.previousValue = infectionRate;
 }
 
 
-export function setInitialRadiuses() {
-  let inputNumber = getInputNumber(radiusInput.value, 0, MAX_RADIUS);
+export function setDeathRate() {
+  let inputNumber = getInputNumber(deathRateInput.value, 0, MAX_RATE);
 
   if (inputNumber === undefined) {
-    radiusInput.value = radiusInput.previousValue;
+    deathRateInput.value = deathRateInput.previousValue;
     return;
   }
 
-  for (let person of people.people) {
-    person.radius = inputNumber;
-  }
-
-  personRadius = inputNumber;
-  setInitialRadiusInputs(inputNumber);
+  deathRate = inputNumber;
+  setDeathRateInputs(inputNumber);
 }
 
-function setInitialRadiusInputs(radius) {
-  radiusInput.value = radius;
-  radiusSlider.value = radius;
+function setDeathRateInputs(deathRate) {
+  deathRateInput.value = deathRate;
+  deathRateSlider.value = deathRate;
 
-  radiusInput.previousValue = radius;
+  deathRateInput.previousValue = deathRate;
 }
 
 
@@ -177,6 +177,63 @@ export function setTimes(target) {
   target.value = inputNumber;
   target.previousValue = inputNumber;
 }
+
+
+export function setSpeeds() {
+  let inputNumber = getInputNumber(speedInput.value, 0, MAX_SPEED);
+
+  if (inputNumber === undefined) {
+    speedInput.value = speedInput.previousValue;
+    return;
+  }
+
+  let ratio = inputNumber / (speed * MONITOR_REFRESH_RATE);
+  if (ratio === 0) {
+    speedIsZero = true;
+  }
+  else {
+    speedIsZero = false;
+    for (let person of people.people) {
+      person.velocity.x *= ratio;
+      person.velocity.y *= ratio;
+    }
+    speed = inputNumber / MONITOR_REFRESH_RATE;
+  }
+  setSpeedInputs(inputNumber);
+}
+
+function setSpeedInputs(speed) {
+  speedInput.value = speed;
+  speedSlider.value = speed;
+
+  speedInput.previousValue = speed;
+}
+
+
+export function setRadiuses() {
+  let inputNumber = getInputNumber(radiusInput.value, 0, MAX_RADIUS);
+
+  if (inputNumber === undefined) {
+    radiusInput.value = radiusInput.previousValue;
+    return;
+  }
+
+  for (let person of people.people) {
+    person.radius = inputNumber;
+  }
+
+  radius = inputNumber;
+  setRadiusInputs(inputNumber);
+}
+
+function setRadiusInputs(radius) {
+  radiusInput.value = radius;
+  radiusSlider.value = radius;
+
+  radiusInput.previousValue = radius;
+}
+
+
 
 
 function getInputNumber(inputString, minNumber, maxNumber) {

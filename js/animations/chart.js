@@ -1,4 +1,4 @@
-import { COLORS } from "../settings.js";
+import { COLORS, deathRate } from "../settings.js";
 import { countHistory } from "../people/people.js";
 
 
@@ -34,29 +34,38 @@ const OPACITY = "bf";
 
 let healthyDataset = {
   label: "Healthy people",
-  backgroundColor: COLORS["healthy"] + OPACITY,
-  borderColor: COLORS["healthy"] + OPACITY,
-  pointBackgroundColor: COLORS["healthy"],
+  backgroundColor: COLORS.healthy + OPACITY,
+  borderColor: COLORS.healthy + OPACITY,
+  pointBackgroundColor: COLORS.healthy,
   fill: false,
   data: countHistory.healthy
 }
 
 let infectedDataset = {
   label: "Infected people",
-  backgroundColor: COLORS["infected"] + OPACITY,
-  borderColor: COLORS["infected"] + OPACITY,
-  pointBackgroundColor: COLORS["infected"],
+  backgroundColor: COLORS.infected + OPACITY,
+  borderColor: COLORS.infected + OPACITY,
+  pointBackgroundColor: COLORS.infected,
   fill: false,
   data: countHistory.infected
 }
 
 let immuneDataset = {
   label: "Immune people",
-  backgroundColor: COLORS["immune"] + OPACITY,
-  borderColor: COLORS["immune"] + OPACITY,
-  pointBackgroundColor: COLORS["immune"],
+  backgroundColor: COLORS.immune + OPACITY,
+  borderColor: COLORS.immune + OPACITY,
+  pointBackgroundColor: COLORS.immune,
   fill: false,
   data: countHistory.immune
+}
+
+let deathsDataset = {
+  label: "Deaths",
+  backgroundColor: COLORS.deaths + OPACITY,
+  borderColor: COLORS.deaths + OPACITY,
+  pointBackgroundColor: COLORS.deaths,
+  fill: false,
+  data: countHistory.deaths
 }
 
 const PEOPLE_CHART = {
@@ -64,7 +73,7 @@ const PEOPLE_CHART = {
 
   data: {
     labels: countHistory.days,
-    datasets: [healthyDataset, infectedDataset, immuneDataset]
+    datasets: [healthyDataset, infectedDataset, immuneDataset, deathsDataset]
   },
 
   options: {
@@ -96,16 +105,28 @@ const PEOPLE_CHART = {
 }
 
 
-let collisionsDataset = {
+let dailyCollisionsDataset = {
   label: "Collisions",
   backgroundColor: "#bfbfbf" + OPACITY,
   data: countHistory.dailyCollisions
 }
 
-let infectionsDataset = {
+let dailyInfectionsDataset = {
   label: "Infections",
-  backgroundColor: COLORS["infected"] + OPACITY,
+  backgroundColor: COLORS.infected + OPACITY,
   data: countHistory.dailyInfections
+}
+
+let dailyRecoveriesDataset = {
+  label: "Recoveries",
+  backgroundColor: COLORS.immune + OPACITY,
+  data: countHistory.dailyRecoveries
+}
+
+let dailyDeathsDataset = {
+  label: "Deaths",
+  backgroundColor: COLORS.deaths + OPACITY,
+  data: countHistory.dailyDeaths
 }
 
 const DAILY_INTERACTIONS_CHART = {
@@ -113,7 +134,7 @@ const DAILY_INTERACTIONS_CHART = {
 
   data: {
     labels: countHistory.days,
-    datasets: [collisionsDataset, infectionsDataset]
+    datasets: [dailyCollisionsDataset, dailyInfectionsDataset, dailyRecoveriesDataset, dailyDeathsDataset]
   },
 
   options: {

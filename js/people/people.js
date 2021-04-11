@@ -1,5 +1,5 @@
 import Person from "./Person.js";
-import { personInitialSpeed, personRadius, infectedFrames, immuneFrames } from "../settings.js";
+import { infectionRate, deathRate, infectedFrames, immuneFrames, speed, radius } from "../settings.js";
 import { walls } from "../walls/walls.js";
 import { drawPeople, erasePeople, clearPeople } from "../animations/canvas.js";
 
@@ -13,8 +13,12 @@ export const count = {
   healthy: 0,
   infected: 0,
   immune: 0,
+  recoveries: 0,
+  deaths: 0,
   dailyCollisions: 0,
   dailyInfections: 0,
+  dailyRecoveries: 0,
+  dailyDeaths: 0,
   dailyReset: function() {
     for (let key of COUNT_DAILY_KEYS) {
       this[key] = 0;
@@ -37,8 +41,12 @@ export const countHistory = {
   healthy: [],
   infected: [],
   immune: [],
+  recoveries: [],
+  deaths: [],
   dailyCollisions: [],
   dailyInfections: [],
+  dailyRecoveries: [],
+  dailyDeaths: [],
   addCurrentCount: function() {
     this.days.push(this.days.length);
     for (let key of COUNT_HISTORY_KEYS_WITHOUT_DAYS) {
@@ -88,7 +96,7 @@ export function add(n, state) {
 
     do {
       let velocityAngle = 2 * Math.PI * Math.random();
-      createdPerson = new Person(personRadius + Math.random() * (animationCanvas.width - 2 * personRadius), personRadius + Math.random() * (animationCanvas.height - 2 * personRadius), personInitialSpeed * Math.cos(velocityAngle), personInitialSpeed * Math.sin(velocityAngle), personRadius, state);
+      createdPerson = new Person(radius + Math.random() * (animationCanvas.width - 2 * radius), radius + Math.random() * (animationCanvas.height - 2 * radius), speed * Math.cos(velocityAngle), speed * Math.sin(velocityAngle), radius, state);
       personIsValid = true;
 
       for (let existingPerson of people) {
@@ -168,17 +176,18 @@ export function removeAllPeople() {
 }
 
 
-export function checkStateChange(frameCount) {
+export function changeState(frameCount) {
   for (let person of people) {
     if (person.state === "infected" && frameCount - person.stateChangeFrame > infectedFrames) {
-      person.setState("immune");
-      count.infected--;
-      count.immune++;
+      if (Math.random() < deathRate) {
+        die(person);
+      }
+      else {
+        immunize(person);
+      }
     }
     if (person.state === "immune" && frameCount - person.stateChangeFrame > immuneFrames) {
-      person.setState("healthy");
-      count.immune--;
-      count.healthy++;
+      cure(person);
     }
   }
 }
@@ -264,17 +273,11 @@ function collidePeople() {
           sine * iNormalVelocity - cosine * jTangentialVelocity
         ];
 
-        if (people[i].state === "healthy" && people[j].state === "infected") {
-          people[i].setState("infected");
-          count.healthy--;
-          count.infected++;
-          count.dailyInfections++;
+        if (people[i].state === "healthy" && people[j].state === "infected" && Math.random() < infectionRate) {
+          infect(people[i]);
         }
-        else if (people[i].state === "infected" && people[j].state === "healthy") {
-          people[j].setState("infected");
-          count.healthy--;
-          count.infected++;
-          count.dailyInfections++;
+        else if (people[i].state === "infected" && people[j].state === "healthy" && Math.random() < infectionRate) {
+          infect(people[j]);
         }
       }
     }
@@ -364,6 +367,36 @@ function collideWithWallPoint(person, wall, pointString) {
     return true;
   }
   return false;
+}
+
+
+function infect(person) {
+  count[person.state]--;
+  person.setState("infected");
+  count.infected++;
+  count.dailyInfections++;
+}
+
+function immunize(person) {
+  count[person.state]--;
+  person.setState("immune");
+  count.immune++;
+  count.recoveries++;
+  count.dailyRecoveries++;
+}
+
+function die(person) {
+  count[person.state]--;
+  people.splice(people.indexOf(person), 1);
+  count.total--;
+  count.deaths++;
+  count.dailyDeaths++;
+}
+
+function cure(person) {
+  count[person.state]--;
+  person.setState("healthy");
+  count.healthy++;
 }
 
 

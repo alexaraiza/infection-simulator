@@ -24,12 +24,11 @@ const ACTION_MAP = {
 function play() {
   frameCount++;
 
-  people.checkStateChange(frameCount);
+  people.changeState(frameCount);
 
   if (!settings.speedIsZero) {
     people.move();
     people.collide();
-    people.hoverMouse(mousePosition[0], mousePosition[1]);
   }
 
   people.redrawPeople();
@@ -69,13 +68,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function reset() {
   resizeCanvas();
+  frameCount = 0;
   settings.resetSettings();
   settings.resetPeople();
   settings.resetInputs();
   walls.removeAllWalls();
   people.countHistory.setLastCount();
   chart.update();
-  frameCount = 0;
 }
 
 
@@ -150,15 +149,15 @@ function addInputEventListeners() {
     element.addEventListener("click", () => handlePeopleCountButtonClick(target, element.id.slice(-2)));
   }
 
-  speedSlider.addEventListener("input", () => speedInput.value = speedSlider.value);
-  speedInput.addEventListener("input", () => speedSlider.value = speedInput.value);
-  speedInput.addEventListener("change", handleSpeedInputChange);
-  speedSlider.addEventListener("change", handleSpeedInputChange);
+  infectionRateSlider.addEventListener("input", () => infectionRateInput.value = infectionRateSlider.value);
+  infectionRateInput.addEventListener("input", () => infectionRateSlider.value = infectionRateInput.value);
+  infectionRateInput.addEventListener("change", handleInfectionRateInputChange);
+  infectionRateSlider.addEventListener("change", handleInfectionRateInputChange);
 
-  radiusSlider.addEventListener("input", () => radiusInput.value = radiusSlider.value);
-  radiusInput.addEventListener("input", () => radiusSlider.value = radiusInput.value);
-  radiusInput.addEventListener("change", handleRadiusInputChange);
-  radiusSlider.addEventListener("change", handleRadiusInputChange);
+  deathRateSlider.addEventListener("input", () => deathRateInput.value = deathRateSlider.value);
+  deathRateInput.addEventListener("input", () => deathRateSlider.value = deathRateInput.value);
+  deathRateInput.addEventListener("change", handleDeathRateInputChange);
+  deathRateSlider.addEventListener("change", handleDeathRateInputChange);
 
   for (let element of document.getElementsByClassName("time-input")) {
     element.addEventListener("change", handleTimeInputChange);
@@ -168,6 +167,16 @@ function addInputEventListeners() {
     let target = document.getElementById(element.id.slice(0, -2));
     element.addEventListener("click", () => handleTimeButtonClick(target, element.id.slice(-2)));
   }
+
+  speedSlider.addEventListener("input", () => speedInput.value = speedSlider.value);
+  speedInput.addEventListener("input", () => speedSlider.value = speedInput.value);
+  speedInput.addEventListener("change", handleSpeedInputChange);
+  speedSlider.addEventListener("change", handleSpeedInputChange);
+
+  radiusSlider.addEventListener("input", () => radiusInput.value = radiusSlider.value);
+  radiusInput.addEventListener("input", () => radiusSlider.value = radiusInput.value);
+  radiusInput.addEventListener("change", handleRadiusInputChange);
+  radiusSlider.addEventListener("change", handleRadiusInputChange);
 }
 
 
@@ -204,13 +213,12 @@ function handlePeopleCountButtonClick(target, operation) {
   handlePeopleCountInputChange({ target: target });
 }
 
-function handleSpeedInputChange() {
-  settings.setInitialSpeeds();
+function handleInfectionRateInputChange() {
+  settings.setInfectionRate();
 }
 
-function handleRadiusInputChange() {
-  settings.setInitialRadiuses();
-  people.redrawPeople();
+function handleDeathRateInputChange() {
+  settings.setDeathRate();
 }
 
 function handleTimeInputChange(event) {
@@ -221,4 +229,13 @@ function handleTimeButtonClick(target, operation) {
   if (operation === "++") target.value++;
   else target.value--;
   handleTimeInputChange({ target: target });
+}
+
+function handleSpeedInputChange() {
+  settings.setSpeeds();
+}
+
+function handleRadiusInputChange() {
+  settings.setRadiuses();
+  people.redrawPeople();
 }
