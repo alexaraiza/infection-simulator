@@ -59,7 +59,8 @@ button:active {
 
 .modal-body {
   display: flex;
-  min-height: 80vw;
+  height: 100vw;
+  max-height: 75vh;
 }
 
 .close-button {
@@ -329,7 +330,7 @@ select {
   }
 
   .settings__input--slider {
-    width: 9rem;
+    width: 7.5rem;
   }
 
   .slider-number {
@@ -341,7 +342,7 @@ select {
     border-radius: 0.25rem;
     box-shadow: -0.25rem -0.25rem 0.25rem -0.125rem #ffffff7f inset, 0.25rem 0.25rem 0.25rem -0.125rem #0000001f inset, -0.0625rem -0.0625rem 0.125rem #ffffff7f, 0.0625rem 0.0625rem 0.125rem #0000001f;
     height: 0.5rem;
-    width: 6rem;
+    width: 4.5rem;
     margin: 0;
   }
   input[type=range]::-webkit-slider-thumb {
@@ -360,15 +361,19 @@ select {
     align-items: center;
   }
   .actions > * {
-    padding: 1vw;
+    padding: 0;
   }
 
   .interactions {
     display: none;
   }
 
+  .simulation-control {
+    display: flex;
+    flex-direction: column;
+  }
   .simulation-control > * {
-    margin: 0 1vw;
+    margin: 0.25rem;
   }
 
   .actions__button {
@@ -432,15 +437,26 @@ select {
   html {
     font-size: 1.2rem;
   }
-}
-@media screen and (min-width: 1800px) {
-  html {
-    font-size: 1.5rem;
+
+  .settings__input--slider {
+    width: 9rem;
+  }
+
+  input[type=range] {
+    width: 6rem;
+  }
+
+  .simulation-control {
+    flex-direction: row;
+    padding: 0.5rem;
+  }
+  .simulation-control > * {
+    margin: 0.5rem;
   }
 }
 @media screen and (min-width: 2400px) {
   html {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 }
 
