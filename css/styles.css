@@ -33,7 +33,6 @@ button:active {
 }
 
 .modal {
-  visibility: hidden;
   position: fixed;
   height: 100%;
   width: 100%;
@@ -42,25 +41,37 @@ button:active {
   z-index: 1;
   padding: 12vw;
   background-color: #0000007f;
-  opacity: 0;
   transition: opacity 250ms;
 }
 
 .modal-content {
   background: #efefef;
   border-radius: 4vw;
-  padding: 9vw 3vw;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 120vw;
+  max-height: 90vh;
+  padding: 3vw;
 }
 
 .modal-header {
-  margin-bottom: 3vw;
+  display: flex;
+  justify-content: space-between;
+  font-size: 5vw;
+  margin-bottom: 5vw;
 }
 
 .modal-body {
   display: flex;
-  height: 100vw;
-  max-height: 75vh;
+  flex-grow: 1;
+  font-size: 3.6vw;
+  margin-bottom: 5vw;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
 }
 
 .close-button {
@@ -68,9 +79,23 @@ button:active {
   box-shadow: none;
   color: #000000;
   height: 6vw;
-  position: absolute;
-  top: 3vw;
-  right: 3vw;
+  margin-left: auto;
+}
+
+.tutorial__icon {
+  height: 1em;
+}
+
+#tutorialBody p:first-child {
+  margin-top: 0;
+}
+#tutorialBody p:last-child {
+  margin-bottom: 0;
+}
+
+#settingsModal {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .settings {
@@ -279,12 +304,40 @@ select {
     box-shadow: 0.0625rem 0.0625rem 0.125rem #0000007f inset;
   }
 
-  .modal, .modal-content, .modal-body {
-    all: unset;
-    width: 100%;
+  .modal {
+    padding: calc(25vh - 4rem) calc(40vw - 10rem);
+  }
+
+  .modal-content {
+    border-radius: 2rem;
+    padding: 1.5rem;
+    max-height: 60vh;
   }
 
   .modal-header {
+    align-items: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-body {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .close-button {
+    height: 2rem;
+  }
+
+  #settingsModal {
+    all: unset;
+    width: 100%;
+  }
+  #settingsModal .modal-content, #settingsModal .modal-body {
+    all: unset;
+    width: 100%;
+  }
+  #settingsModal .modal-header {
     display: none;
   }
 

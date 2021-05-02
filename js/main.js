@@ -1,4 +1,5 @@
 import * as settings from "./settings.js";
+import { previousPage, nextPage } from "./tutorial.js";
 import * as people from "./people/people.js";
 import * as walls from "./walls/walls.js";
 import { getMousePosition, resize as resizeCanvas } from "./animations/canvas.js";
@@ -127,6 +128,11 @@ function addEventListeners() {
 
 
 function addInputEventListeners() {
+  closeTutorialModalButton.addEventListener("click", closeTutorialModal);
+
+  previousPageTutorialButton.addEventListener("click", previousPage);
+  nextPageTutorialButton.addEventListener("click", nextPage);
+
   for (let element of document.getElementsByClassName("select-person-button")) {
     element.addEventListener("click", () => selectedAction = "selectPerson");
   }
@@ -179,6 +185,11 @@ function addInputEventListeners() {
   radiusSlider.addEventListener("change", handleRadiusInputChange);
 }
 
+
+function closeTutorialModal() {
+  tutorialModal.style.opacity = 0;
+  setTimeout(() => tutorialModal.style.visibility = "hidden", 250);
+}
 
 function openSettingsModal() {
   settingsModal.style.visibility = "visible";
