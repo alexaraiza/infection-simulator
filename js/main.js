@@ -13,10 +13,10 @@ let nextFrameID;
 let mousePosition = [0, 0];
 let mouseIsDown = false;
 
-let selectedAction = "selectPerson";
+let selectedAction = "removePerson";
 
 const ACTION_MAP = {
-  selectPerson: people.hoverMouse,
+  removePerson: people.hoverMouse,
   placeWall: walls.editWall,
   removeWall: walls.hoverMouse
 }
@@ -90,7 +90,7 @@ function addEventListeners() {
   });
 
   touchBox.addEventListener("mouseleave", function() {
-    if (selectedAction === "selectPerson") {
+    if (selectedAction === "removePerson") {
       people.unhoverPeople();
     }
     else if (selectedAction === "placeWall") {
@@ -104,7 +104,11 @@ function addEventListeners() {
   });
 
   touchBox.addEventListener("click", function() {
-    if (selectedAction === "removeWall") {
+    if (selectedAction === "removePerson") {
+      people.removeHoveringPerson();
+      settings.setPeopleCountInputs();
+    }
+    else if (selectedAction === "removeWall") {
       walls.removeHoveringWall();
     }
   });
@@ -133,8 +137,8 @@ function addInputEventListeners() {
   previousPageTutorialButton.addEventListener("click", previousPage);
   nextPageTutorialButton.addEventListener("click", nextPage);
 
-  for (let element of document.getElementsByClassName("select-person-button")) {
-    element.addEventListener("click", () => selectedAction = "selectPerson");
+  for (let element of document.getElementsByClassName("remove-person-button")) {
+    element.addEventListener("click", () => selectedAction = "removePerson");
   }
   for (let element of document.getElementsByClassName("place-wall-button")) {
     element.addEventListener("click", () => selectedAction = "placeWall");

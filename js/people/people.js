@@ -1,6 +1,6 @@
 import Person from "./Person.js";
 import { infectionRate, deathRate, infectedFrames, immuneFrames, speed, radius } from "../settings.js";
-import { walls } from "../walls/walls.js";
+import { hoveringWall, walls } from "../walls/walls.js";
 import { drawPeople, erasePeople, clearPeople } from "../animations/canvas.js";
 
 
@@ -173,6 +173,17 @@ export function removeAllPeople() {
   count.reset();
   countHistory.reset();
   clearPeople();
+}
+
+
+export function removeHoveringPerson() {
+  if (hoveringPerson) {
+    erasePeople([hoveringPerson]);
+    people.splice(people.indexOf(hoveringPerson), 1);
+    count[hoveringPerson.state]--;
+    count.total--;
+    hoveringPerson = null;
+  }
 }
 
 
